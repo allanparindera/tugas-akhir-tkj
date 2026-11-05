@@ -39,7 +39,7 @@
         </div>
         <h1>Portal Pengumpulan & Uji Pakai Tugas Akhir</h1>
         <p class="contract-banner">
-          Aturan kelulusan karya: Projek wajib sudah jadi dan siap digunakan langsung. Tolak link lokal (localhost). Pilih rilis Live Webview (URL https publik) atau File Install (APK/EXE/Bot aktif beserta panduan install dan akun demo).
+          Aturan kelulusan karya: Tugas Akhir bersifat Personal/Individu (1 siswa wajib 1 karya mandiri). Projek wajib sudah jadi dan siap digunakan langsung. Tolak link lokal (localhost). Pilih rilis Live Webview (URL https publik) atau File Install (APK/EXE/Bot aktif beserta panduan install dan akun demo).
         </p>
       </div>
       <div class="tally-row" id="tallyBand">
@@ -155,7 +155,7 @@
                 <th style="width: 44px;">Abs</th>
                 <th style="width: 220px;">Nama Siswa</th>
                 <th>Status Tugas Akhir</th>
-                <th>Judul Projek / Tim</th>
+                <th>Judul Projek Mandiri</th>
                 <th>Mode Rilis</th>
                 <th class="num" style="width: 90px;">Fungsi (40%)</th>
                 <th class="num" style="width: 90px;">UI/UX (30%)</th>
@@ -196,7 +196,7 @@
                 <span class="field-hint">Pilih kelas tempat ketua projek terdaftar.</span>
               </div>
               <div class="field">
-                <label for="formStudent">Nama Siswa (Ketua / Pengumpul) *</label>
+                <label for="formStudent">Nama Siswa (Pembuat Karya Mandiri) *</label>
                 <select id="formStudent" class="select" required>
                   <option value="">Pilih nama siswa…</option>
                 </select>
@@ -220,14 +220,6 @@
                 </select>
                 <span class="field-hint">Bidang spesialisasi karya.</span>
               </div>
-            </div>
-
-            <div class="field">
-              <label>Anggota Tim (Opsional, Maksimal 3 Rekan Sekelas)</label>
-              <div class="member-grid" id="memberCheckboxGrid">
-                <!-- Checkbox siswa sekelas -->
-              </div>
-              <span class="field-hint">Pilih teman sekelas jika projek dikerjakan berkelompok.</span>
             </div>
 
             <div class="field">
@@ -384,33 +376,33 @@
     let isStaticMode = false;
 
     const SEED_STUDENTS = [
-      { kelas: 'XII TKJ 1', no_absen: 1, name: 'Fyara Tuz Zahra' },
-      { kelas: 'XII TKJ 1', no_absen: 2, name: 'Mutia Sara' },
-      { kelas: 'XII TKJ 1', no_absen: 3, name: 'Jesen Toms Lasi' },
-      { kelas: 'XII TKJ 1', no_absen: 4, name: 'Masbayu' },
-      { kelas: 'XII TKJ 1', no_absen: 5, name: 'Adhani Wahyudi' },
-      { kelas: 'XII TKJ 1', no_absen: 6, name: 'Dea Anatasya Putri' },
-      { kelas: 'XII TKJ 1', no_absen: 7, name: 'Atha Salsabila Agustine' },
-      { kelas: 'XII TKJ 1', no_absen: 8, name: 'Ahmad Fitoni' },
+      { kelas: 'XII TKJ 1', no_absen: 1, name: 'Adhani Wahyudi' },
+      { kelas: 'XII TKJ 1', no_absen: 2, name: 'Ahmad Fitoni' },
+      { kelas: 'XII TKJ 1', no_absen: 3, name: 'Anna Tasya' },
+      { kelas: 'XII TKJ 1', no_absen: 4, name: 'Atha Salsabila Agustine' },
+      { kelas: 'XII TKJ 1', no_absen: 5, name: 'Dea Anatasya Putri' },
+      { kelas: 'XII TKJ 1', no_absen: 6, name: 'Dwi Nur Ichrom' },
+      { kelas: 'XII TKJ 1', no_absen: 7, name: 'Dzakii Pratama Haritahta' },
+      { kelas: 'XII TKJ 1', no_absen: 8, name: 'Fyara Tuz Zahra' },
       { kelas: 'XII TKJ 1', no_absen: 9, name: 'Ilham Saputra' },
-      { kelas: 'XII TKJ 1', no_absen: 10, name: 'Raditya Damariz Gautama' },
-      { kelas: 'XII TKJ 1', no_absen: 11, name: 'Naila Nur Salsabila Putri' },
-      { kelas: 'XII TKJ 1', no_absen: 12, name: 'Izzabela Maulina' },
-      { kelas: 'XII TKJ 1', no_absen: 13, name: 'Dwi Nur Ichrom' },
-      { kelas: 'XII TKJ 1', no_absen: 14, name: 'Mochammad Farrel Ramaulia' },
-      { kelas: 'XII TKJ 1', no_absen: 15, name: 'Muhamad Holyone' },
-      { kelas: 'XII TKJ 1', no_absen: 16, name: 'Nabil Zaenal Assyqin' },
-      { kelas: 'XII TKJ 1', no_absen: 17, name: 'Kaila Kanzha' },
-      { kelas: 'XII TKJ 1', no_absen: 18, name: 'Keisya Tania Sibarani' },
-      { kelas: 'XII TKJ 1', no_absen: 19, name: 'Muhamad Irpan' },
-      { kelas: 'XII TKJ 1', no_absen: 20, name: 'Septian Roberto Silalahi' },
-      { kelas: 'XII TKJ 1', no_absen: 21, name: 'Muhammad Fariz Ramadhan' },
-      { kelas: 'XII TKJ 1', no_absen: 22, name: 'Raju Arya Ramana' },
-      { kelas: 'XII TKJ 1', no_absen: 23, name: 'Shapa Alipiandi' },
-      { kelas: 'XII TKJ 1', no_absen: 24, name: 'Anna Tasya' },
+      { kelas: 'XII TKJ 1', no_absen: 10, name: 'Izzabela Maulina' },
+      { kelas: 'XII TKJ 1', no_absen: 11, name: 'Jesen Toms Lasi' },
+      { kelas: 'XII TKJ 1', no_absen: 12, name: 'Kaila Kanzha' },
+      { kelas: 'XII TKJ 1', no_absen: 13, name: 'Keisya Tania Sibarani' },
+      { kelas: 'XII TKJ 1', no_absen: 14, name: 'Masbayu' },
+      { kelas: 'XII TKJ 1', no_absen: 15, name: 'Mochammad Farrel Ramaulia' },
+      { kelas: 'XII TKJ 1', no_absen: 16, name: 'Muhamad Holyone' },
+      { kelas: 'XII TKJ 1', no_absen: 17, name: 'Muhamad Irpan' },
+      { kelas: 'XII TKJ 1', no_absen: 18, name: 'Muhammad Fariz Ramadhan' },
+      { kelas: 'XII TKJ 1', no_absen: 19, name: 'Mutia Sara' },
+      { kelas: 'XII TKJ 1', no_absen: 20, name: 'Nabil Zaenal Assyqin' },
+      { kelas: 'XII TKJ 1', no_absen: 21, name: 'Naila Nur Salsabila Putri' },
+      { kelas: 'XII TKJ 1', no_absen: 22, name: 'Raditya Damariz Gautama' },
+      { kelas: 'XII TKJ 1', no_absen: 23, name: 'Raihan Mufadzal Zaki' },
+      { kelas: 'XII TKJ 1', no_absen: 24, name: 'Raju Arya Ramana' },
       { kelas: 'XII TKJ 1', no_absen: 25, name: 'Ratu Habibah' },
-      { kelas: 'XII TKJ 1', no_absen: 26, name: 'Dzakii Pratama Haritahta' },
-      { kelas: 'XII TKJ 1', no_absen: 27, name: 'Raihan Mufadzal Zaki' },
+      { kelas: 'XII TKJ 1', no_absen: 26, name: 'Septian Roberto Silalahi' },
+      { kelas: 'XII TKJ 1', no_absen: 27, name: 'Shapa Alipiandi' },
       { kelas: 'XII TKJ 2', no_absen: 1, name: 'Abib Maulana' },
       { kelas: 'XII TKJ 2', no_absen: 2, name: 'Ahmad Daffa Ariansyah' },
       { kelas: 'XII TKJ 2', no_absen: 3, name: 'Allysia Putri Sagita' },
@@ -442,9 +434,14 @@
     ].map((s, idx) => ({ id: idx + 1, ...s, project_id: null, has_pin: false, pin: '' }));
 
     function getLocalDb() {
-      const raw = localStorage.getItem('ta_tkj_local_db');
+      const raw = localStorage.getItem('ta_tkj_local_db_v2');
       if (raw) {
-        try { return JSON.parse(raw); } catch {}
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.students && parsed.students[0] && parsed.students[0].name === 'Adhani Wahyudi') {
+            return parsed;
+          }
+        } catch {}
       }
       const initial = {
         students: JSON.parse(JSON.stringify(SEED_STUDENTS)),
@@ -452,12 +449,12 @@
         settings: { adminName: 'Allan Parindera, S.Kom', adminPass: 'guru123', deadline: '2026-12-18' },
         nextProjId: 1
       };
-      localStorage.setItem('ta_tkj_local_db', JSON.stringify(initial));
+      localStorage.setItem('ta_tkj_local_db_v2', JSON.stringify(initial));
       return initial;
     }
 
     function saveLocalDb(db) {
-      localStorage.setItem('ta_tkj_local_db', JSON.stringify(db));
+      localStorage.setItem('ta_tkj_local_db_v2', JSON.stringify(db));
     }
 
     function localApi(action, payload) {
@@ -552,15 +549,7 @@
             updated_at: new Date().toISOString()
           };
           db.projects.unshift(proj);
-        }
-
-        const memberSet = new Set([lead.id, ...(payload.member_ids || []).map(Number)]);
-        for (const s of db.students) {
-          if (s.project_id === proj.id) s.project_id = null;
-        }
-        for (const id of memberSet) {
-          const s = db.students.find(x => x.id === id);
-          if (s) s.project_id = proj.id;
+          lead.project_id = proj.id;
         }
 
         saveLocalDb(db);
@@ -755,7 +744,8 @@
 
       container.innerHTML = filtered.map(p => {
         const isSel = p.id === AppState.selectedProjectId;
-        const authorNames = (p.members || []).map(m => m.name).join(', ') || 'Siswa';
+        const authorName = (p.student && p.student.name) || (p.members && p.members[0] && p.members[0].name) || 'Siswa';
+        const authorAbsen = p.student?.no_absen || (p.members && p.members[0] && p.members[0].no_absen) || '';
         const statusClass = p.status === 'SIAP PAKAI' ? 'status-ok' : (p.status === 'REVISI WAJIB' ? 'status-err' : 'status-warn');
         const scoreDisplay = p.score_total > 0 ? `<span class="score-pill">Nilai: ${p.score_total}</span>` : '';
 
@@ -765,7 +755,7 @@
               <span class="project-title">${escapeHtml(p.title)}</span>
               <span class="status-text ${statusClass}">${p.status}</span>
             </div>
-            <span class="project-authors">${escapeHtml(p.kelas)} &middot; ${escapeHtml(authorNames)}</span>
+            <span class="project-authors">${escapeHtml(p.kelas)} &middot; Absen ${authorAbsen} &middot; ${escapeHtml(authorName)}</span>
             <p class="project-summary">${escapeHtml(p.summary || '')}</p>
             <div class="project-foot">
               <div class="tag-row">
@@ -814,7 +804,9 @@
         ${project.score_total > 0 ? `<span class="score-pill">Total: ${project.score_total}</span>` : ''}
       `;
 
-      const membersList = (project.members || []).map(m => `${m.name} (Absen ${m.no_absen})`).join(', ');
+      const authorName = (project.student && project.student.name) || (project.members && project.members[0] && project.members[0].name) || 'Siswa';
+      const authorAbsen = project.student?.no_absen || (project.members && project.members[0] && project.members[0].no_absen) || '-';
+      const studentLabel = `${authorName} (No. Absen ${authorAbsen})`;
 
       let stageHtml = '';
       if (project.delivery_mode === 'WEB_LIVE') {
@@ -907,8 +899,8 @@
       content.innerHTML = `
         <dl class="meta-dl">
           <div>
-            <dt>Tim / Pembuat</dt>
-            <dd>${escapeHtml(membersList)}</dd>
+            <dt>Siswa Pembuat</dt>
+            <dd>${escapeHtml(studentLabel)}</dd>
           </div>
           <div>
             <dt>Kategori & Distribusi</dt>
@@ -988,7 +980,9 @@
 
       document.getElementById('rosterTableTitle').textContent = `Daftar Nilai & Status Siswa ${targetClass}`;
 
-      let students = AppState.students.filter(s => s.kelas === targetClass);
+      let students = AppState.students
+        .filter(s => s.kelas === targetClass)
+        .sort((a, b) => (Number(a.no_absen) || 0) - (Number(b.no_absen) || 0));
       document.getElementById('rosterCountLabel').textContent = `${students.length} siswa terdaftar`;
 
       const projectMap = new Map(AppState.projects.map(p => [p.id, p]));
@@ -1105,46 +1099,28 @@
       }
     };
 
-    // Render Form Students Dropdown & Teammates
+    // Render Form Students Dropdown
     function populateFormStudents() {
       const k = document.getElementById('formKelas').value;
       const select = document.getElementById('formStudent');
       const curVal = select.value;
 
-      const studentsInClass = AppState.students.filter(s => s.kelas === k);
-      select.innerHTML = `<option value="">Pilih nama siswa...</option>` +
+      const studentsInClass = AppState.students
+        .filter(s => s.kelas === k)
+        .sort((a, b) => (Number(a.no_absen) || 0) - (Number(b.no_absen) || 0));
+
+      select.innerHTML = `<option value="">Pilih nama siswa…</option>` +
         studentsInClass.map(s => `<option value="${s.id}">${s.no_absen}. ${escapeHtml(s.name)}</option>`).join('');
 
       if (curVal && studentsInClass.some(s => String(s.id) === String(curVal))) {
         select.value = curVal;
       }
-      populateTeammates();
-    }
-
-    function populateTeammates() {
-      const k = document.getElementById('formKelas').value;
-      const leadId = Number(document.getElementById('formStudent').value);
-      const grid = document.getElementById('memberCheckboxGrid');
-
-      const classmates = AppState.students.filter(s => s.kelas === k && s.id !== leadId);
-      if (classmates.length === 0) {
-        grid.innerHTML = `<p style="font-size: var(--text-xs); color: var(--color-muted);">Pilih nama ketua terlebih dahulu.</p>`;
-        return;
-      }
-
-      grid.innerHTML = classmates.map(s => `
-        <label class="member-check">
-          <input type="checkbox" name="teamMember" value="${s.id}">
-          <span>${s.no_absen}. ${escapeHtml(s.name)}</span>
-        </label>
-      `).join('');
     }
 
     function onFormStudentChange() {
       const sid = Number(document.getElementById('formStudent').value);
       const student = AppState.students.find(s => s.id === sid);
       const hint = document.getElementById('formStudentHint');
-      populateTeammates();
 
       if (!student) {
         hint.textContent = 'Data absen terhubung otomatis.';
@@ -1171,12 +1147,6 @@
           document.getElementById('formDemoAccount').value = p.demo_account || '';
           document.getElementById('formSummary').value = p.summary || '';
           onDeliveryModeChange();
-
-          // Check member boxes
-          const memberIds = new Set((p.members || []).map(m => String(m.id)));
-          document.querySelectorAll('input[name="teamMember"]').forEach(cb => {
-            cb.checked = memberIds.has(cb.value);
-          });
         }
       }
     }
@@ -1190,7 +1160,7 @@
       const inputUrl = document.getElementById('formPrimaryUrl');
 
       if (mode === 'WEB_LIVE') {
-        labelUrl.textContent = 'URL Live Webview (https://...) *';
+        labelUrl.textContent = 'URL Live Webview (https://…) *';
         hintUrl.textContent = 'Tolak link localhost / 192.168.x.x. Wajib dapat diakses dari internet.';
         inputUrl.placeholder = 'https://projek-saya.vercel.app';
         wrapPlat.hidden = true;
@@ -1198,7 +1168,7 @@
       } else {
         labelUrl.textContent = 'URL Unduhan Release / Link Installer (APK / EXE / Bot) *';
         hintUrl.textContent = 'Link publik langsung (Google Drive publik, Release GitHub, atau Telegram Bot link).';
-        inputUrl.placeholder = 'https://github.com/username/repo/releases/download/...';
+        inputUrl.placeholder = 'https://github.com/username/repo/releases/download/…';
         wrapPlat.hidden = false;
         wrapGuide.hidden = false;
       }
@@ -1210,9 +1180,9 @@
       const alertBox = document.getElementById('submitAlertArea');
       alertBox.innerHTML = '';
 
-      const leadId = Number(document.getElementById('formStudent').value);
-      if (!leadId) {
-        alertBox.innerHTML = `<div class="alert-bar alert-error">Pilih nama siswa ketua/pengumpul terlebih dahulu.</div>`;
+      const studentId = Number(document.getElementById('formStudent').value);
+      if (!studentId) {
+        alertBox.innerHTML = `<div class="alert-bar alert-error">Pilih nama siswa terlebih dahulu.</div>`;
         return;
       }
 
@@ -1227,15 +1197,14 @@
       const demoAccount = document.getElementById('formDemoAccount').value.trim();
       const summary = document.getElementById('formSummary').value.trim();
 
-      const memberIds = Array.from(document.querySelectorAll('input[name="teamMember"]:checked')).map(cb => Number(cb.value));
-
       const btnSubmit = document.getElementById('btnSubmitProject');
       btnSubmit.disabled = true;
-      btnSubmit.textContent = 'Memvalidasi & Mengirim...';
+      btnSubmit.textContent = 'Memvalidasi & Mengirim…';
 
       try {
         const res = await api('submitProject', {
-          lead_student_id: leadId,
+          student_id: studentId,
+          lead_student_id: studentId,
           pin,
           title,
           category,
@@ -1245,8 +1214,7 @@
           target_platform: targetPlatform,
           install_guide: installGuide,
           demo_account: demoAccount,
-          summary,
-          member_ids: memberIds
+          summary
         });
 
         alertBox.innerHTML = `<div class="alert-bar alert-ok">Tugas Akhir berhasil disimpan dan dikunci. Data langsung masuk ke Meja Uji Guru.</div>`;
@@ -1266,7 +1234,9 @@
     // CSV Export Generator
     function exportRosterCsv() {
       const targetClass = AppState.rosterClass;
-      const students = AppState.students.filter(s => s.kelas === targetClass);
+      const students = AppState.students
+        .filter(s => s.kelas === targetClass)
+        .sort((a, b) => (Number(a.no_absen) || 0) - (Number(b.no_absen) || 0));
       const projectMap = new Map(AppState.projects.map(p => [p.id, p]));
 
       const rows = [

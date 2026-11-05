@@ -145,23 +145,19 @@ async function buildState(user) {
      order by kelas asc, no_absen asc`
   );
   const projects = await q(
-    `select id, kelas, lead_student_id, title, category, delivery_mode, primary_url, repo_url,
-            target_platform, install_guide, demo_account, summary, status,
-            score_func, score_ui, score_tech, score_total::float as score_total,
-            reviewer_note, submitted_at, updated_at, verified_at
-     from ta_tkj.projects
-     order by updated_at desc, id desc`
+    `select p.id, p.kelas, p.lead_student_id as student_id, p.title, p.category, p.delivery_mode, p.primary_url, p.repo_url,
+            p.target_platform, p.install_guide, p.demo_account, p.summary, p.status,
+            p.score_func, p.score_ui, p.score_tech, p.score_total::float as score_total,
+            p.reviewer_note, p.submitted_at, p.updated_at, p.verified_at,
+            s.name as student_name, s.no_absen as student_no_absen
+     from ta_tkj.projects p
+     left join ta_tkj.students s on s.id = p.lead_student_id
+     order by p.updated_at desc, p.id desc`
   );
-  const byProject = new Map();
-  for (const s of students) {
-    if (s.project_id) {
-      if (!byProject.has(s.project_id)) byProject.set(s.project_id, []);
-      byProject.get(s.project_id).push({ id: s.id, no_absen: s.no_absen, name: s.name });
-    }
-  }
   const enrichedProjects = projects.map(p => ({
     ...p,
-    members: byProject.get(p.id) || []
+    student: { id: p.student_id, no_absen: p.student_no_absen, name: p.student_name },
+    members: [{ id: p.student_id, no_absen: p.student_no_absen, name: p.student_name }]
   }));
   return {
     students,
@@ -216,15 +212,15 @@ export default async function handler(req, res) {
     }
 
     if (action === 'submitProject') {
-      const leadId = int(raw.lead_student_id, 'Siswa ketua/pengumpul', 1);
-      const leadRows = await q('select * from ta_tkj.students where id = $1', [leadId]);
-      const lead = leadRows[0];
-      if (!lead) fail(404, 'Data siswa tidak ditemukan di daftar absen.');
+      const studentId = int(raw.student_id || raw.lead_student_id, 'Siswa pengumpul', 1);
+      const studentRows = await q('select * from ta_tkj.students where id = $1', [studentId]);
+      const student = studentRows[0];
+      if (!student) fail(404, 'Data siswa tidak ditemukan di daftar absen.');
 
       const pin = String(raw.pin || '').trim();
       if (!isAdmin) {
         if (!/^\d{4}$/.test(pin)) fail(400, 'PIN siswa wajib 4 digit angka (contoh: 1234).');
-        if (lead.pin_hash && !checkSecret(pin, lead.pin_hash)) {
+        if (student.pin_hash && !checkSecret(pin, student.pin_hash)) {
           fail(401, 'PIN 4 digit salah. Gunakan PIN saat pertama kali kumpul atau minta guru reset PIN.');
         }
       }
@@ -254,21 +250,11 @@ export default async function handler(req, res) {
         fail(400, 'Jelaskan fungsi utama aplikasi minimal 10 karakter.');
       }
 
-      // Validate team members in same class
-      const rawMembers = Array.isArray(raw.member_ids) ? raw.member_ids.map(Number).filter(Boolean) : [];
-      const memberSet = new Set([leadId, ...rawMembers]);
-      if (memberSet.size > 4) fail(400, 'Maksimal 4 siswa dalam satu tim.');
-      const memberIds = [...memberSet];
-      const memberRows = await q('select id, kelas from ta_tkj.students where id = any($1::int[])', [memberIds]);
-      if (memberRows.length !== memberIds.length || memberRows.some(m => m.kelas !== lead.kelas)) {
-        fail(400, 'Semua anggota tim harus berasal dari kelas yang sama.');
+      if (!student.pin_hash && /^\d{4}$/.test(pin)) {
+        await q('update ta_tkj.students set pin_hash = $1 where id = $2', [hashSecret(pin), studentId]);
       }
 
-      if (!lead.pin_hash && /^\d{4}$/.test(pin)) {
-        await q('update ta_tkj.students set pin_hash = $1 where id = $2', [hashSecret(pin), leadId]);
-      }
-
-      let projectId = lead.project_id;
+      let projectId = student.project_id;
       if (projectId) {
         const existing = (await q('select id, status from ta_tkj.projects where id = $1', [projectId]))[0];
         if (!existing) projectId = null;
@@ -291,14 +277,11 @@ export default async function handler(req, res) {
              target_platform, install_guide, demo_account, summary
            ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
            returning id`,
-          [lead.kelas, leadId, title, category, deliveryMode, primaryUrl, repoUrl, targetPlatform, installGuide, demoAccount, summary]
+          [student.kelas, studentId, title, category, deliveryMode, primaryUrl, repoUrl, targetPlatform, installGuide, demoAccount, summary]
         );
         projectId = ins[0].id;
+        await q('update ta_tkj.students set project_id = $1 where id = $2', [projectId, studentId]);
       }
-
-      // Clear old members of this project then assign current members
-      await q('update ta_tkj.students set project_id = null where project_id = $1', [projectId]);
-      await q('update ta_tkj.students set project_id = $1 where id = any($2::int[])', [projectId, memberIds]);
 
       return res.status(200).json({ ok: true, project_id: projectId, ...(await buildState(isAdmin ? session : { role: 'guest' })) });
     }

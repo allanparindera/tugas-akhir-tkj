@@ -25,8 +25,14 @@ const tkj1 = init.students.filter(s => s.kelas === 'XII TKJ 1');
 const tkj2 = init.students.filter(s => s.kelas === 'XII TKJ 2');
 assert.equal(tkj1.length, 27);
 assert.equal(tkj2.length, 28);
-assert.equal(tkj1[0].name, 'Fyara Tuz Zahra');
+assert.equal(tkj1[0].name, 'Adhani Wahyudi');
+assert.equal(tkj1[0].no_absen, 1);
+assert.equal(tkj1[26].name, 'Shapa Alipiandi');
+assert.equal(tkj1[26].no_absen, 27);
 assert.equal(tkj2[0].name, 'Abib Maulana');
+assert.equal(tkj2[0].no_absen, 1);
+assert.equal(tkj2[27].name, 'Tegar Suripto');
+assert.equal(tkj2[27].no_absen, 28);
 
 console.log('--- 2. Testing Anti-Slop Hard Gate: Localhost & Private IP Rejection ---');
 const sid1 = tkj1[0].id;
@@ -78,8 +84,7 @@ const sub1 = await call('submitProject', {
   primary_url: 'https://hotspot-mon.vercel.app',
   repo_url: 'https://github.com/fyara/hotspot-mon',
   demo_account: 'demo / pass1234',
-  summary: 'Dashboard visual status antrean bandwidth dan voucher aktif mikrotik.',
-  member_ids: [tkj1[1].id] // Mutia Sara
+  summary: 'Dashboard visual status antrean bandwidth dan voucher aktif mikrotik.'
 });
 assert.equal(sub1.status, 200, 'Submission success');
 assert.ok(sub1.project_id);
@@ -88,7 +93,7 @@ assert.ok(sub1.project_id);
 const stateAfterSub = await call('state');
 const proj = stateAfterSub.projects.find(p => p.id === sub1.project_id);
 assert.ok(proj);
-assert.equal(proj.members.length, 2, '2 team members assigned');
+assert.equal(proj.student_id, sid1, 'Student assigned as single author');
 assert.equal(proj.status, 'MENUNGGU UJI');
 
 console.log('--- 5. Testing PIN Verification on Update ---');
@@ -114,8 +119,7 @@ const correctPin = await call('submitProject', {
   delivery_mode: 'WEB_LIVE',
   primary_url: 'https://hotspot-mon-v2.vercel.app',
   demo_account: 'demo / pass1234',
-  summary: 'Pembaruan dashboard dengan grafik real-time traffic.',
-  member_ids: [tkj1[1].id]
+  summary: 'Pembaruan dashboard dengan grafik real-time traffic.'
 });
 assert.equal(correctPin.status, 200, 'Correct PIN accepted and updated');
 
