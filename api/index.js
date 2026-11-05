@@ -99,14 +99,16 @@ export function validateProductUrl(rawUrl, mode) {
   if (!['https:', 'http:'].includes(parsed.protocol)) {
     fail(400, 'URL wajib menggunakan protokol https:// atau http://');
   }
-  const host = parsed.hostname.toLowerCase();
+  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, '');
   if (
     host === 'localhost' ||
-    host === '127.0.0.1' ||
     host === '0.0.0.0' ||
+    host === '::1' ||
     host.endsWith('.local') ||
-    /^192\.168\./.test(host) ||
-    /^10\./.test(host) ||
+    host.startsWith('127.') ||
+    host.startsWith('10.') ||
+    host.startsWith('192.168.') ||
+    host.startsWith('169.254.') ||
     /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)
   ) {
     fail(400, 'URL lokal (localhost / IP privat) ditolak. Wajib URL publik yang sudah online atau link rilis siap pakai.');
@@ -219,9 +221,20 @@ export default async function handler(req, res) {
 
       const pin = String(raw.pin || '').trim();
       if (!isAdmin) {
+        if (student.locked_until && new Date(student.locked_until) > new Date()) {
+          fail(429, 'Terlalu banyak percobaan PIN salah. Akun siswa terkunci sementara selama 10 menit.');
+        }
         if (!/^\d{4}$/.test(pin)) fail(400, 'PIN siswa wajib 4 digit angka (contoh: 1234).');
         if (student.pin_hash && !checkSecret(pin, student.pin_hash)) {
+          const nextFails = (student.fails || 0) + 1;
+          await q("update ta_tkj.students set fails = fails + 1, locked_until = case when fails + 1 >= 5 then now() + interval '10 minutes' else null end where id = $1", [studentId]);
+          if (nextFails >= 5) {
+            fail(429, 'PIN salah 5 kali. Akun siswa terkunci sementara selama 10 menit.');
+          }
           fail(401, 'PIN 4 digit salah. Gunakan PIN saat pertama kali kumpul atau minta guru reset PIN.');
+        }
+        if (student.fails > 0 || student.locked_until) {
+          await q('update ta_tkj.students set fails = 0, locked_until = null where id = $1', [studentId]);
         }
       }
 
@@ -254,34 +267,22 @@ export default async function handler(req, res) {
         await q('update ta_tkj.students set pin_hash = $1 where id = $2', [hashSecret(pin), studentId]);
       }
 
-      let projectId = student.project_id;
-      if (projectId) {
-        const existing = (await q('select id, status from ta_tkj.projects where id = $1', [projectId]))[0];
-        if (!existing) projectId = null;
-      }
-
-      if (projectId) {
-        await q(
-          `update ta_tkj.projects
-           set title = $1, category = $2, delivery_mode = $3, primary_url = $4, repo_url = $5,
-               target_platform = $6, install_guide = $7, demo_account = $8, summary = $9,
-               status = case when status = 'REVISI WAJIB' then 'MENUNGGU UJI' else status end,
-               updated_at = now()
-           where id = $10`,
-          [title, category, deliveryMode, primaryUrl, repoUrl, targetPlatform, installGuide, demoAccount, summary, projectId]
-        );
-      } else {
-        const ins = await q(
-          `insert into ta_tkj.projects(
-             kelas, lead_student_id, title, category, delivery_mode, primary_url, repo_url,
-             target_platform, install_guide, demo_account, summary
-           ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-           returning id`,
-          [student.kelas, studentId, title, category, deliveryMode, primaryUrl, repoUrl, targetPlatform, installGuide, demoAccount, summary]
-        );
-        projectId = ins[0].id;
-        await q('update ta_tkj.students set project_id = $1 where id = $2', [projectId, studentId]);
-      }
+      const ins = await q(
+        `insert into ta_tkj.projects(
+           kelas, lead_student_id, title, category, delivery_mode, primary_url, repo_url,
+           target_platform, install_guide, demo_account, summary
+         ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+         on conflict (lead_student_id) do update set
+           title = excluded.title, category = excluded.category, delivery_mode = excluded.delivery_mode,
+           primary_url = excluded.primary_url, repo_url = excluded.repo_url, target_platform = excluded.target_platform,
+           install_guide = excluded.install_guide, demo_account = excluded.demo_account, summary = excluded.summary,
+           status = case when ta_tkj.projects.status = 'REVISI WAJIB' then 'MENUNGGU UJI' else ta_tkj.projects.status end,
+           updated_at = now()
+         returning id`,
+        [student.kelas, studentId, title, category, deliveryMode, primaryUrl, repoUrl, targetPlatform, installGuide, demoAccount, summary]
+      );
+      const projectId = ins[0].id;
+      await q('update ta_tkj.students set project_id = $1 where id = $2', [projectId, studentId]);
 
       return res.status(200).json({ ok: true, project_id: projectId, ...(await buildState(isAdmin ? session : { role: 'guest' })) });
     }
@@ -314,7 +315,7 @@ export default async function handler(req, res) {
     if (action === 'resetStudentPin') {
       if (!isAdmin) fail(403, 'Hanya guru penguji yang dapat mereset PIN siswa.');
       const sid = int(raw.student_id, 'ID Siswa', 1);
-      await q('update ta_tkj.students set pin_hash = null where id = $1', [sid]);
+      await q('update ta_tkj.students set pin_hash = null, fails = 0, locked_until = null where id = $1', [sid]);
       return res.status(200).json({ ok: true, ...(await buildState(session)) });
     }
 
@@ -323,12 +324,17 @@ export default async function handler(req, res) {
       const k = cleanText(raw.kelas, 30);
       if (!CLASSES.includes(k)) fail(400, 'Kelas tidak valid.');
       const students = await q('select id, no_absen, name from ta_tkj.students where kelas = $1 order by no_absen asc', [k]);
-      const results = [];
-      for (const s of students) {
-        const pin = String(crypto.randomInt(1000, 10000));
-        await q('update ta_tkj.students set pin_hash = $1 where id = $2', [hashSecret(pin), s.id]);
-        results.push({ id: s.id, no_absen: s.no_absen, name: s.name, pin });
-      }
+      const results = students.map(s => ({
+        id: s.id,
+        no_absen: s.no_absen,
+        name: s.name,
+        pin: String(crypto.randomInt(1000, 10000))
+      }));
+      await Promise.all(
+        results.map(r =>
+          q('update ta_tkj.students set pin_hash = $1, fails = 0, locked_until = null where id = $2', [hashSecret(r.pin), r.id])
+        )
+      );
       return res.status(200).json({ ok: true, pins: results, ...(await buildState(session)) });
     }
 

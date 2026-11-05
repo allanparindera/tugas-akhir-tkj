@@ -12,6 +12,8 @@ create table if not exists ta_tkj.students(
   name text not null,
   pin_hash text,
   project_id int,
+  fails int not null default 0,
+  locked_until timestamptz,
   unique (kelas, no_absen),
   unique (kelas, name)
 );
@@ -19,7 +21,7 @@ create table if not exists ta_tkj.students(
 create table if not exists ta_tkj.projects(
   id serial primary key,
   kelas text not null check (kelas in ('XII TKJ 1', 'XII TKJ 2')),
-  lead_student_id int not null references ta_tkj.students(id) on delete cascade,
+  lead_student_id int not null unique references ta_tkj.students(id) on delete cascade,
   title text not null,
   category text not null check (category in ('Web App', 'Android / Desktop', 'Jaringan & Otomasi', 'Bot / IoT / CLI')),
   delivery_mode text not null check (delivery_mode in ('WEB_LIVE', 'INSTALLABLE')),

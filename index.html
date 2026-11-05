@@ -38,6 +38,7 @@
         <div class="tag-row">
           <span class="tag">Tahun Ajaran 2026/2027</span>
           <span class="tag" id="deadlineTag">Batas Waktu: 18 Des 2026</span>
+          <span class="tag" id="connStatusTag">Memeriksa Koneksi…</span>
         </div>
         <h1>Portal Pengumpulan & Uji Pakai Tugas Akhir</h1>
         <p class="contract-banner">
@@ -213,6 +214,7 @@
                 <label for="formPin">PIN 4 Digit Siswa *</label>
                 <div class="input-group">
                   <input type="password" id="formPin" class="input mono-input" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Contoh: 1234" required>
+                  <button type="button" class="btn btn-sm" id="btnTogglePin">Lihat</button>
                   <button type="button" class="btn btn-sm" id="btnGenRandomPin">Buat PIN Acak</button>
                 </div>
                 <span class="field-hint" id="pinFieldHint">PIN baru dibuat saat kumpul pertama, atau masukkan PIN lama untuk revisi link.</span>
@@ -472,7 +474,10 @@
       <form id="formLoginGuru" novalidate>
         <div class="field">
           <label for="inputAdminPassword">Password Penguji</label>
-          <input type="password" id="inputAdminPassword" class="input mono-input" placeholder="Masukkan password penguji..." required>
+          <div class="input-group">
+            <input type="password" id="inputAdminPassword" class="input mono-input" placeholder="Masukkan password penguji…" required>
+            <button type="button" class="btn btn-sm" id="btnToggleAdminPass">Lihat</button>
+          </div>
           <span class="field-hint">Default awal: guru123</span>
         </div>
         <div id="loginErrorMsg" class="alert-bar alert-error" hidden style="margin-top: var(--space-xs);"></div>
@@ -719,16 +724,44 @@
         if (!lead) throw new Error('Data siswa tidak ditemukan.');
 
         const pin = String(payload.pin || '').trim();
+        lead.fails = lead.fails || 0;
+        if (lead.locked_until && new Date(lead.locked_until) > new Date()) {
+          throw new Error('Terlalu banyak percobaan PIN salah. Akun siswa terkunci sementara selama 10 menit.');
+        }
         if (user.role !== 'admin') {
           if (!/^\d{4}$/.test(pin)) throw new Error('PIN siswa wajib 4 digit angka.');
-          if (lead.pin && lead.pin !== pin) throw new Error('PIN 4 digit salah. Minta guru reset PIN jika lupa.');
+          if (lead.pin && lead.pin !== pin) {
+            lead.fails += 1;
+            if (lead.fails >= 5) {
+              lead.locked_until = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+            }
+            saveLocalDb(db);
+            throw new Error('PIN 4 digit salah. Minta guru reset PIN jika lupa.');
+          }
+          lead.fails = 0;
+          lead.locked_until = null;
         }
 
         const title = String(payload.title || '').trim();
         if (title.length < 4) throw new Error('Judul projek minimal 4 karakter.');
         const primaryUrl = String(payload.primary_url || '').trim();
-        if (!/^https?:\/\//i.test(primaryUrl)) throw new Error('URL wajib diawali https://');
-        if (/localhost|127\.0\.0\.1|192\.168\./i.test(primaryUrl)) throw new Error('URL lokal (localhost) ditolak.');
+        let parsed;
+        try { parsed = new URL(primaryUrl); } catch { throw new Error('Format URL tidak valid. Gunakan awalan https://'); }
+        if (!['https:', 'http:'].includes(parsed.protocol)) throw new Error('URL wajib menggunakan protokol https://');
+        const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+        if (
+          host === 'localhost' ||
+          host === '0.0.0.0' ||
+          host === '::1' ||
+          host.endsWith('.local') ||
+          host.startsWith('127.') ||
+          host.startsWith('10.') ||
+          host.startsWith('192.168.') ||
+          host.startsWith('169.254.') ||
+          /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)
+        ) {
+          throw new Error('URL lokal (localhost / IP privat) ditolak. Wajib URL publik yang sudah online atau link rilis siap pakai.');
+        }
 
         if (!lead.pin && /^\d{4}$/.test(pin)) lead.pin = pin;
 
@@ -793,7 +826,7 @@
       if (action === 'resetStudentPin') {
         if (user.role !== 'admin') throw new Error('Hanya guru penguji yang dapat mereset PIN.');
         const s = db.students.find(x => x.id === Number(payload.student_id));
-        if (s) s.pin = '';
+        if (s) { s.pin = ''; s.fails = 0; s.locked_until = null; }
         saveLocalDb(db);
         return { ok: true, ...localApi('state', {}) };
       }
@@ -826,8 +859,23 @@
       throw new Error('Aksi tidak dikenal: ' + action);
     }
 
+    function updateConnStatus(isServerless) {
+      const tag = document.getElementById('connStatusTag');
+      if (!tag) return;
+      if (isServerless) {
+        tag.textContent = 'Serverless DB (Online)';
+        tag.style.background = 'var(--color-success-wash)';
+        tag.style.color = 'var(--color-success)';
+      } else {
+        tag.textContent = 'Mode Lokal (Browser Storage)';
+        tag.style.background = 'var(--color-paper-2)';
+        tag.style.color = 'var(--color-ink-2)';
+      }
+    }
+
     async function api(action, payload = {}) {
       if (isStaticMode) {
+        updateConnStatus(false);
         return localApi(action, payload);
       }
       try {
@@ -842,17 +890,20 @@
         if (res.status === 404 || !contentType.includes('application/json')) {
           console.warn('API endpoint tidak aktif (mode statis terdeteksi). Menggunakan penyimpanan browser.');
           isStaticMode = true;
+          updateConnStatus(false);
           return localApi(action, payload);
         }
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.error || 'Terjadi kesalahan pada server');
         }
+        updateConnStatus(true);
         return data;
       } catch (err) {
         if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
           console.warn('Jaringan gagal, beralih ke penyimpanan lokal.');
           isStaticMode = true;
+          updateConnStatus(false);
           return localApi(action, payload);
         }
         throw err;
@@ -1066,8 +1117,9 @@
         stageHtml = `
           <div class="preview-stage">
             <div class="preview-bar">
-              <div style="display:flex; align-items:center; gap:var(--space-xs); min-width:0;">
+              <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
                 <span class="preview-url">${escapeHtml(project.primary_url)}</span>
+                <span style="font-size:11px; color:var(--color-graphite-muted);">Jika pratinjau terblokir proteksi situs, klik Buka Tab Baru.</span>
               </div>
               <div class="preview-actions">
                 <div class="tray" role="group" aria-label="Viewport Preview">
@@ -1078,7 +1130,7 @@
               </div>
             </div>
             <div class="frame-wrap ${AppState.previewDeviceMode === 'mobile' ? 'is-mobile-viewport' : ''}">
-              <iframe src="${escapeHtml(project.primary_url)}" sandbox="allow-scripts allow-forms allow-same-origin allow-popups" title="Pratinjau Aplikasi Live"></iframe>
+              <iframe src="${escapeHtml(project.primary_url)}" sandbox="allow-scripts allow-forms allow-popups" title="Pratinjau Aplikasi Live"></iframe>
             </div>
           </div>
         `;
@@ -1293,7 +1345,7 @@
             <td class="num mono-cell" data-label="Teknis">${sTech}</td>
             <td class="num mono-cell" data-label="Total">${sTotal}</td>
             <td style="text-align: right;" data-label="Aksi">
-              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+              <div class="roster-actions" style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                 ${p ? `<button type="button" class="btn btn-sm btn-inspect-row" data-goto-proj="${p.id}">Uji Karya</button>` : `<button type="button" class="btn btn-sm btn-submit-for" data-class="${s.kelas}" data-student-id="${s.id}">Kumpul</button>`}
                 ${resetPinBtn}
               </div>
@@ -1387,29 +1439,42 @@
       }
 
       // If student already has a project, pre-fill form unless restoring draft
-      if (!skipPreFill && student.project_id) {
-        const p = AppState.projects.find(x => x.id === student.project_id);
-        if (p) {
-          document.getElementById('formTitle').value = p.title || '';
-          document.getElementById('formCategory').value = p.category || 'Web App';
-          document.getElementById('formDeliveryMode').value = p.delivery_mode || 'WEB_LIVE';
-          document.getElementById('formPrimaryUrl').value = p.primary_url || '';
-          document.getElementById('formRepoUrl').value = p.repo_url || '';
-          document.getElementById('formTargetPlatform').value = p.target_platform || '';
-          document.getElementById('formInstallGuide').value = p.install_guide || '';
-          document.getElementById('formDemoAccount').value = p.demo_account || '';
-          document.getElementById('formSummary').value = p.summary || '';
+      if (!skipPreFill) {
+        if (student.project_id) {
+          const p = AppState.projects.find(x => x.id === student.project_id);
+          if (p) {
+            document.getElementById('formTitle').value = p.title || '';
+            document.getElementById('formCategory').value = p.category || 'Web App';
+            document.getElementById('formDeliveryMode').value = p.delivery_mode || 'WEB_LIVE';
+            document.getElementById('formPrimaryUrl').value = p.primary_url || '';
+            document.getElementById('formRepoUrl').value = p.repo_url || '';
+            document.getElementById('formTargetPlatform').value = p.target_platform || '';
+            document.getElementById('formInstallGuide').value = p.install_guide || '';
+            document.getElementById('formDemoAccount').value = p.demo_account || '';
+            document.getElementById('formSummary').value = p.summary || '';
+            onDeliveryModeChange();
+          }
+        } else {
+          document.getElementById('formTitle').value = '';
+          document.getElementById('formCategory').value = 'Web App';
+          document.getElementById('formDeliveryMode').value = 'WEB_LIVE';
+          document.getElementById('formPrimaryUrl').value = '';
+          document.getElementById('formRepoUrl').value = '';
+          document.getElementById('formTargetPlatform').value = '';
+          document.getElementById('formInstallGuide').value = '';
+          document.getElementById('formDemoAccount').value = '';
+          document.getElementById('formSummary').value = '';
+          document.getElementById('formPin').value = '';
           onDeliveryModeChange();
         }
       }
     }
 
-    // Form Draft Auto-Save & Recovery
+    // Form Draft Auto-Save & Recovery (PIN dikecualikan demi keamanan)
     function saveFormDraft() {
       const draft = {
         kelas: document.getElementById('formKelas')?.value || 'XII TKJ 1',
         studentId: document.getElementById('formStudent')?.value || '',
-        pin: document.getElementById('formPin')?.value || '',
         category: document.getElementById('formCategory')?.value || 'Web App',
         deliveryMode: document.getElementById('formDeliveryMode')?.value || 'WEB_LIVE',
         title: document.getElementById('formTitle')?.value || '',
@@ -1420,7 +1485,7 @@
         demoAccount: document.getElementById('formDemoAccount')?.value || '',
         summary: document.getElementById('formSummary')?.value || ''
       };
-      if (draft.title || draft.primaryUrl || draft.summary || draft.studentId || draft.pin) {
+      if (draft.title || draft.primaryUrl || draft.summary || draft.studentId) {
         localStorage.setItem('ta_tkj_form_draft', JSON.stringify(draft));
         updateDraftIndicator(true);
       }
@@ -1440,7 +1505,6 @@
           document.getElementById('formStudent').value = d.studentId;
           onFormStudentChange(true);
         }
-        if (d.pin) document.getElementById('formPin').value = d.pin;
         if (d.category) document.getElementById('formCategory').value = d.category;
         if (d.deliveryMode) document.getElementById('formDeliveryMode').value = d.deliveryMode;
         if (d.title) document.getElementById('formTitle').value = d.title;
@@ -1599,7 +1663,12 @@
         ]);
       }
 
-      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const cleanCsvCell = v => {
+        let str = String(v ?? '').trim();
+        if (/^[=\+\-@\t\r]/.test(str)) str = "'" + str;
+        return '"' + str.replace(/"/g, '""') + '"';
+      };
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.map(cleanCsvCell).join(',')).join('\n');
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
@@ -1679,7 +1748,8 @@
         .filter(s => s.kelas === k)
         .sort((a, b) => (Number(a.no_absen) || 0) - (Number(b.no_absen) || 0));
 
-      const curSelected = targetStudentId || studentSelect.value;
+      const savedSid = localStorage.getItem('ta_tkj_my_student_id');
+      const curSelected = targetStudentId || studentSelect.value || savedSid;
       studentSelect.innerHTML = `<option value="">Pilih nama siswa…</option>` +
         studentsInClass.map(s => `<option value="${s.id}">${s.no_absen}. ${escapeHtml(s.name)}</option>`).join('');
 
@@ -1688,6 +1758,9 @@
       }
 
       const activeSid = Number(studentSelect.value);
+      if (activeSid) {
+        localStorage.setItem('ta_tkj_my_student_id', activeSid);
+      }
       if (!activeSid) {
         cardArea.innerHTML = `
           <div class="state-panel" style="background: var(--color-paper-2); border-radius: var(--radius-card); border: var(--rule-hair) solid var(--color-rule-2);">
@@ -1858,6 +1931,26 @@
         const hint = document.getElementById('pinFieldHint');
         if (hint) hint.textContent = `PIN acak dibuat: ${pin}. Harap simpan atau catat PIN ini!`;
         setTimeout(() => { input.type = 'password'; }, 6000);
+      };
+    }
+
+    const btnTogglePin = document.getElementById('btnTogglePin');
+    if (btnTogglePin) {
+      btnTogglePin.onclick = () => {
+        const input = document.getElementById('formPin');
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        btnTogglePin.textContent = isPass ? 'Tutup' : 'Lihat';
+      };
+    }
+
+    const btnToggleAdmin = document.getElementById('btnToggleAdminPass');
+    if (btnToggleAdmin) {
+      btnToggleAdmin.onclick = () => {
+        const input = document.getElementById('inputAdminPassword');
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        btnToggleAdmin.textContent = isPass ? 'Tutup' : 'Lihat';
       };
     }
 

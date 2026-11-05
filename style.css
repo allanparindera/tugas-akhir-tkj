@@ -907,4 +907,61 @@
     color: var(--color-muted);
     font-weight: 500;
   }
+  .roster-actions {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+  }
+}
+
+/* Print Rules */
+@media print {
+  .topbar,
+  .workspace-head,
+  .main-area,
+  #modalLogin,
+  #modalChangePass,
+  #modalResetPin,
+  .btn,
+  .btn-row,
+  .pane-header button {
+    display: none !important;
+  }
+
+  body {
+    background: var(--color-paper) !important;
+    color: var(--color-ink) !important;
+  }
+
+  #modalBulkPins {
+    position: static !important;
+    background: transparent !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  #modalBulkPins .modal-card {
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  #modalBulkPins div[style*="max-height"] {
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+  }
+
+  .roster-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  .roster-table th,
+  .roster-table td {
+    border: var(--rule-hair) solid var(--color-rule-2) !important;
+    padding: var(--space-xs) !important;
+    color: var(--color-ink) !important;
+  }
 }

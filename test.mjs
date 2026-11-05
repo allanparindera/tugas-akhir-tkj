@@ -123,6 +123,32 @@ const correctPin = await call('submitProject', {
 });
 assert.equal(correctPin.status, 200, 'Correct PIN accepted and updated');
 
+console.log('--- 5b. Testing PIN Brute-Force Lockout (5 Fails -> 429) ---');
+for (let i = 0; i < 4; i++) {
+  const r = await call('submitProject', {
+    lead_student_id: sid1,
+    pin: '9999',
+    title: 'Brute Force Test',
+    category: 'Web App',
+    delivery_mode: 'WEB_LIVE',
+    primary_url: 'https://test.vercel.app',
+    demo_account: 'test',
+    summary: 'Brute force testing attempt.'
+  });
+  assert.equal(r.status, 401);
+}
+const locked = await call('submitProject', {
+  lead_student_id: sid1,
+  pin: '9999',
+  title: 'Brute Force Test 5th',
+  category: 'Web App',
+  delivery_mode: 'WEB_LIVE',
+  primary_url: 'https://test.vercel.app',
+  demo_account: 'test',
+  summary: 'Brute force testing attempt 5.'
+});
+assert.equal(locked.status, 429, 'Account must be locked with HTTP 429 after 5 failures');
+
 console.log('--- 6. Testing Installable Mode Validation ---');
 const sid2 = tkj2[0].id; // Abib Maulana
 const installNoGuide = await call('submitProject', {
