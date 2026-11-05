@@ -1,0 +1,1434 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Portal Pengumpulan dan Verifikasi Uji Pakai Tugas Akhir XII TKJ 1 dan XII TKJ 2 SMKS Kartika X-1">
+  <title>Portal Tugas Akhir TKJ | SMKS Kartika X-1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand-group">
+        <a href="#workbench" class="brand-title">Tugas Akhir TKJ</a>
+        <span class="brand-sub">SMKS Kartika X-1</span>
+      </div>
+      <div class="topbar-controls">
+        <nav class="tray" role="tablist" aria-label="Navigasi Utama">
+          <button type="button" class="tray-btn is-active" id="tabNavWorkbench" data-view="workbench" role="tab" aria-selected="true">Meja Uji & Etalase</button>
+          <button type="button" class="tray-btn" id="tabNavRoster" data-view="roster" role="tab" aria-selected="false">Rekap & Nilai Kelas</button>
+          <button type="button" class="tray-btn" id="tabNavSubmit" data-view="submit" role="tab" aria-selected="false">Form Kumpul Karya</button>
+        </nav>
+        <div id="authArea">
+          <button type="button" class="btn btn-sm" id="btnLoginModal">Login Guru</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="workspace-head">
+    <div class="container head-grid">
+      <div class="head-copy">
+        <div class="tag-row">
+          <span class="tag">Tahun Ajaran 2026/2027</span>
+          <span class="tag" id="deadlineTag">Batas Waktu: 18 Des 2026</span>
+        </div>
+        <h1>Portal Pengumpulan & Uji Pakai Tugas Akhir</h1>
+        <p class="contract-banner">
+          Aturan kelulusan karya: Projek wajib sudah jadi dan siap digunakan langsung. Tolak link lokal (localhost). Pilih rilis Live Webview (URL https publik) atau File Install (APK/EXE/Bot aktif beserta panduan install dan akun demo).
+        </p>
+      </div>
+      <div class="tally-row" id="tallyBand">
+        <div class="tally-cell">
+          <span class="tally-val" id="tallyTotalStudents">55</span>
+          <span class="tally-label">Total Siswa</span>
+        </div>
+        <div class="tally-cell">
+          <span class="tally-val" id="tallySubmitted">0</span>
+          <span class="tally-label">Karya Masuk</span>
+        </div>
+        <div class="tally-cell">
+          <span class="tally-val" id="tallyVerified">0</span>
+          <span class="tally-label">Siap Pakai</span>
+        </div>
+        <div class="tally-cell">
+          <span class="tally-val" id="tallyRevision">0</span>
+          <span class="tally-label">Perlu Revisi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container main-area">
+    <!-- VIEW 1: WORKBENCH & ETALASE -->
+    <section id="viewWorkbench" class="view-panel">
+      <div class="toolbar-strip">
+        <div class="filter-group">
+          <div class="tray" role="group" aria-label="Filter Kelas">
+            <button type="button" class="tray-btn is-active" data-class-filter="ALL">Semua Kelas</button>
+            <button type="button" class="tray-btn" data-class-filter="XII TKJ 1">Kelas 12 TKJ 1</button>
+            <button type="button" class="tray-btn" data-class-filter="XII TKJ 2">Kelas 12 TKJ 2</button>
+          </div>
+          <select id="filterCategory" class="select select-compact" aria-label="Filter Kategori">
+            <option value="ALL">Semua Kategori</option>
+            <option value="Web App">Web App</option>
+            <option value="Android / Desktop">Android / Desktop</option>
+            <option value="Jaringan & Otomasi">Jaringan & Otomasi</option>
+            <option value="Bot / IoT / CLI">Bot / IoT / CLI</option>
+          </select>
+          <select id="filterStatus" class="select select-compact" aria-label="Filter Status">
+            <option value="ALL">Semua Status</option>
+            <option value="SIAP PAKAI">Siap Pakai</option>
+            <option value="MENUNGGU UJI">Menunggu Uji</option>
+            <option value="REVISI WAJIB">Revisi Wajib</option>
+          </select>
+          <input type="search" id="searchWorkbench" class="input input-search" placeholder="Cari judul atau nama siswa…">
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-sm btn-primary" id="btnGoToSubmit">+ Kumpul Projek</button>
+        </div>
+      </div>
+
+      <div class="workbench-grid" style="margin-top: var(--space-md);">
+        <!-- Kolom Kiri: Daftar Projek -->
+        <div class="list-pane">
+          <div class="pane-header">
+            <span class="pane-title">Daftar Karya Terkumpul</span>
+            <span class="pane-meta" id="projectCountLabel">0 karya</span>
+          </div>
+          <div class="project-list" id="projectListContainer">
+            <!-- Diisi lewat JS -->
+          </div>
+        </div>
+
+        <!-- Kolom Kanan: Meja Uji / Inspector Panel -->
+        <div class="inspector-pane" id="inspectorPane">
+          <div class="pane-header">
+            <span class="pane-title" id="inspectorHeaderTitle">Panel Pengujian Aplikasi</span>
+            <div class="tag-row" id="inspectorHeaderTags"></div>
+          </div>
+          <div class="inspector-body" id="inspectorContent">
+            <!-- Diisi lewat JS saat baris projek diklik -->
+            <div class="state-panel">
+              <p>Pilih salah satu projek di daftar sebelah kiri untuk menguji live webview, memeriksa installer, dan melakukan verifikasi nilai.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: ROSTER & REKAP KELAS -->
+    <section id="viewRoster" class="view-panel" hidden>
+      <div class="toolbar-strip">
+        <div class="filter-group">
+          <div class="tray" role="group" aria-label="Pilih Kelas Rekap">
+            <button type="button" class="tray-btn is-active" data-roster-class="XII TKJ 1">XII TKJ 1 (27 Siswa)</button>
+            <button type="button" class="tray-btn" data-roster-class="XII TKJ 2">XII TKJ 2 (28 Siswa)</button>
+          </div>
+          <select id="rosterStatusFilter" class="select select-compact" aria-label="Filter Status Roster">
+            <option value="ALL">Semua Status</option>
+            <option value="BELUM">Belum Kumpul</option>
+            <option value="MENUNGGU UJI">Menunggu Uji</option>
+            <option value="REVISI WAJIB">Revisi Wajib</option>
+            <option value="SIAP PAKAI">Siap Pakai (Dinilai)</option>
+          </select>
+          <input type="search" id="searchRoster" class="input input-search" placeholder="Cari nama absen siswa…">
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-sm" id="btnExportCsv">Export Nilai CSV</button>
+        </div>
+      </div>
+
+      <div class="list-pane" style="margin-top: var(--space-md);">
+        <div class="pane-header">
+          <span class="pane-title" id="rosterTableTitle">Daftar Nilai & Status Siswa XII TKJ 1</span>
+          <span class="pane-meta" id="rosterCountLabel">27 siswa terdaftar</span>
+        </div>
+        <div class="table-wrap">
+          <table class="roster-table">
+            <thead>
+              <tr>
+                <th style="width: 44px;">Abs</th>
+                <th style="width: 220px;">Nama Siswa</th>
+                <th>Status Tugas Akhir</th>
+                <th>Judul Projek / Tim</th>
+                <th>Mode Rilis</th>
+                <th class="num" style="width: 90px;">Fungsi (40%)</th>
+                <th class="num" style="width: 90px;">UI/UX (30%)</th>
+                <th class="num" style="width: 90px;">Teknis (30%)</th>
+                <th class="num" style="width: 80px;">Total</th>
+                <th style="width: 130px; text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="rosterTableBody">
+              <!-- Diisi lewat JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: FORM PENGUMPULAN KARYA -->
+    <section id="viewSubmit" class="view-panel" hidden>
+      <div style="max-width: 760px; margin: 0 auto;">
+        <div class="form-sheet">
+          <div>
+            <h2>Form Pengumpulan & Pembaruan Tugas Akhir</h2>
+            <p class="field-hint" style="margin-top: var(--space-2xs);">
+              Pastikan aplikasi sudah jalan. Isi semua data teknis, tautan publik, serta akun login pengujian bila aplikasi memerlukan otentikasi.
+            </p>
+          </div>
+
+          <div id="submitAlertArea"></div>
+
+          <form id="projectSubmitForm" novalidate>
+            <div class="form-row-2">
+              <div class="field">
+                <label for="formKelas">Kelas Asal *</label>
+                <select id="formKelas" class="select" required>
+                  <option value="XII TKJ 1">XII TKJ 1</option>
+                  <option value="XII TKJ 2">XII TKJ 2</option>
+                </select>
+                <span class="field-hint">Pilih kelas tempat ketua projek terdaftar.</span>
+              </div>
+              <div class="field">
+                <label for="formStudent">Nama Siswa (Ketua / Pengumpul) *</label>
+                <select id="formStudent" class="select" required>
+                  <option value="">Pilih nama siswa…</option>
+                </select>
+                <span class="field-hint" id="formStudentHint">Data absen terhubung otomatis.</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="formPin">PIN 4 Digit Siswa *</label>
+                <input type="password" id="formPin" class="input mono-input" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Contoh: 1234" required>
+                <span class="field-hint">PIN baru dibuat saat kumpul pertama, atau masukkan PIN lama untuk revisi link.</span>
+              </div>
+              <div class="field">
+                <label for="formCategory">Kategori Projek *</label>
+                <select id="formCategory" class="select" required>
+                  <option value="Web App">Web App</option>
+                  <option value="Android / Desktop">Android / Desktop</option>
+                  <option value="Jaringan & Otomasi">Jaringan & Otomasi</option>
+                  <option value="Bot / IoT / CLI">Bot / IoT / CLI</option>
+                </select>
+                <span class="field-hint">Bidang spesialisasi karya.</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Anggota Tim (Opsional, Maksimal 3 Rekan Sekelas)</label>
+              <div class="member-grid" id="memberCheckboxGrid">
+                <!-- Checkbox siswa sekelas -->
+              </div>
+              <span class="field-hint">Pilih teman sekelas jika projek dikerjakan berkelompok.</span>
+            </div>
+
+            <div class="field">
+              <label for="formTitle">Judul Projek / Aplikasi *</label>
+              <input type="text" id="formTitle" class="input" placeholder="Contoh: Sistem Monitoring Router MikroTik Berbasis Web" required maxlength="120">
+              <span class="field-hint">Gunakan nama yang jelas menggambarkan fungsi aplikasi.</span>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="formDeliveryMode">Bentuk Distribusi Kesiapan Pakai *</label>
+                <select id="formDeliveryMode" class="select" required>
+                  <option value="WEB_LIVE">Live Webview (Aplikasi Web Online Aktif)</option>
+                  <option value="INSTALLABLE">File Install / Paket Siap Pakai (APK / EXE / Bot / Script)</option>
+                </select>
+                <span class="field-hint">Wajib bisa diuji langsung oleh penguji.</span>
+              </div>
+              <div class="field">
+                <label for="formPrimaryUrl" id="labelPrimaryUrl">URL Live Webview (https://…) *</label>
+                <input type="url" id="formPrimaryUrl" class="input mono-input" placeholder="https://projek-saya.vercel.app" required>
+                <span class="field-hint" id="hintPrimaryUrl">Tolak link localhost / 192.168.x.x. Wajib dapat diakses dari internet.</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="formRepoUrl">URL Repositori / Source Code (GitHub / GitLab)</label>
+                <input type="url" id="formRepoUrl" class="input mono-input" placeholder="https://github.com/username/repo">
+                <span class="field-hint">Tautan kode sumber projek (opsional tapi disarankan).</span>
+              </div>
+              <div class="field" id="wrapTargetPlatform" hidden>
+                <label for="formTargetPlatform">Target Perangkat / Lingkungan</label>
+                <input type="text" id="formTargetPlatform" class="input" placeholder="Contoh: Android 11+ / Windows 10 x64 / RouterOS v7">
+                <span class="field-hint">Spesifikasi perangkat untuk menjalankan installer.</span>
+              </div>
+            </div>
+
+            <div class="field" id="wrapInstallGuide" hidden>
+              <label for="formInstallGuide">Langkah Instalasi & Cara Menjalankan *</label>
+              <textarea id="formInstallGuide" class="textarea mono-input" placeholder="Tuliskan urutan instalasi, syarat dependensi, atau cara mengeksekusi file release secara ringkas."></textarea>
+              <span class="field-hint">Wajib diisi untuk karya bertipe file install.</span>
+            </div>
+
+            <div class="field">
+              <label for="formDemoAccount">Akses Uji Coba / Akun Demo *</label>
+              <input type="text" id="formDemoAccount" class="input" placeholder="Contoh: admin / password123 (atau: Tanpa login - langsung pakai)" required>
+              <span class="field-hint">Wajib dicantumkan agar guru penguji tidak terhambat saat menguji aplikasi.</span>
+            </div>
+
+            <div class="field">
+              <label for="formSummary">Ringkasan Fitur Utama & Masalah yang Diselesaikan *</label>
+              <textarea id="formSummary" class="textarea" placeholder="Jelaskan 2-3 fitur unggulan dan kegunaan aplikasi ini saat dipakai nyata." required></textarea>
+              <span class="field-hint">Minimal 10 karakter penjelasan teknis.</span>
+            </div>
+
+            <div class="btn-row" style="margin-top: var(--space-sm);">
+              <button type="submit" class="btn btn-primary" id="btnSubmitProject">Kirim & Kunci Tugas Akhir</button>
+              <button type="button" class="btn" id="btnCancelSubmit">Batal</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: LOGIN GURU -->
+  <div id="modalLogin" class="modal-backdrop" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalLoginTitle">
+      <div class="pane-header" style="background: transparent; padding: 0; border: 0;">
+        <span class="pane-title" id="modalLoginTitle">Masuk Portal Penguji Guru</span>
+        <button type="button" class="btn btn-sm" id="btnCloseLogin">Tutup</button>
+      </div>
+      <form id="formLoginGuru" novalidate>
+        <div class="field">
+          <label for="inputAdminPassword">Password Penguji</label>
+          <input type="password" id="inputAdminPassword" class="input mono-input" placeholder="Masukkan password penguji..." required>
+          <span class="field-hint">Default awal: guru123</span>
+        </div>
+        <div id="loginErrorMsg" class="alert-bar alert-error" hidden style="margin-top: var(--space-xs);"></div>
+        <div class="btn-row" style="margin-top: var(--space-sm); justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: GANTI PASSWORD GURU -->
+  <div id="modalChangePass" class="modal-backdrop" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalPassTitle">
+      <div class="pane-header" style="background: transparent; padding: 0; border: 0;">
+        <span class="pane-title" id="modalPassTitle">Ganti Password Penguji</span>
+        <button type="button" class="btn btn-sm" id="btnClosePass">Tutup</button>
+      </div>
+      <form id="formChangePass" novalidate>
+        <div class="field">
+          <label for="inputAdminName">Nama Guru Penguji</label>
+          <input type="text" id="inputAdminName" class="input" placeholder="Contoh: Allan Parindera, S.Kom" required>
+        </div>
+        <div class="field">
+          <label for="inputOldPass">Password Lama *</label>
+          <input type="password" id="inputOldPass" class="input mono-input" required>
+        </div>
+        <div class="field">
+          <label for="inputNewPass">Password Baru *</label>
+          <input type="password" id="inputNewPass" class="input mono-input" minlength="6" placeholder="Minimal 6 karakter" required>
+        </div>
+        <div id="changePassMsg" class="alert-bar" hidden style="margin-top: var(--space-xs);"></div>
+        <div class="btn-row" style="margin-top: var(--space-sm); justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">Simpan Password Baru</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RESET PIN SISWA -->
+  <div id="modalResetPin" class="modal-backdrop" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalPinTitle">
+      <div class="pane-header" style="background: transparent; padding: 0; border: 0;">
+        <span class="pane-title" id="modalPinTitle">Reset PIN Siswa</span>
+        <button type="button" class="btn btn-sm" id="btnCloseResetPin">Tutup</button>
+      </div>
+      <p id="resetPinStudentLabel" class="field-hint"></p>
+      <p style="font-size: var(--text-sm);">
+        Tindakan ini akan menghapus PIN 4 digit yang dibuat siswa. Siswa dapat memasukkan PIN baru saat melakukan submit berikutnya.
+      </p>
+      <div id="resetPinAlert" class="alert-bar alert-error" hidden></div>
+      <div class="btn-row" style="margin-top: var(--space-sm); justify-content: flex-end;">
+        <button type="button" class="btn btn-danger" id="btnConfirmResetPin">Konfirmasi Reset PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // State Management
+    let AppState = {
+      students: [],
+      projects: [],
+      settings: {},
+      user: { role: 'guest' },
+      selectedProjectId: null,
+      activeView: 'workbench',
+      filterClass: 'ALL',
+      filterCategory: 'ALL',
+      filterStatus: 'ALL',
+      searchQuery: '',
+      rosterClass: 'XII TKJ 1',
+      rosterStatus: 'ALL',
+      rosterSearch: '',
+      previewDeviceMode: 'desktop', // 'desktop' | 'mobile'
+      token: localStorage.getItem('ta_tkj_token') || ''
+    };
+
+    // Helper: API Caller with automatic static fallback (works on Vercel API and GitHub Pages)
+    let isStaticMode = false;
+
+    const SEED_STUDENTS = [
+      { kelas: 'XII TKJ 1', no_absen: 1, name: 'Fyara Tuz Zahra' },
+      { kelas: 'XII TKJ 1', no_absen: 2, name: 'Mutia Sara' },
+      { kelas: 'XII TKJ 1', no_absen: 3, name: 'Jesen Toms Lasi' },
+      { kelas: 'XII TKJ 1', no_absen: 4, name: 'Masbayu' },
+      { kelas: 'XII TKJ 1', no_absen: 5, name: 'Adhani Wahyudi' },
+      { kelas: 'XII TKJ 1', no_absen: 6, name: 'Dea Anatasya Putri' },
+      { kelas: 'XII TKJ 1', no_absen: 7, name: 'Atha Salsabila Agustine' },
+      { kelas: 'XII TKJ 1', no_absen: 8, name: 'Ahmad Fitoni' },
+      { kelas: 'XII TKJ 1', no_absen: 9, name: 'Ilham Saputra' },
+      { kelas: 'XII TKJ 1', no_absen: 10, name: 'Raditya Damariz Gautama' },
+      { kelas: 'XII TKJ 1', no_absen: 11, name: 'Naila Nur Salsabila Putri' },
+      { kelas: 'XII TKJ 1', no_absen: 12, name: 'Izzabela Maulina' },
+      { kelas: 'XII TKJ 1', no_absen: 13, name: 'Dwi Nur Ichrom' },
+      { kelas: 'XII TKJ 1', no_absen: 14, name: 'Mochammad Farrel Ramaulia' },
+      { kelas: 'XII TKJ 1', no_absen: 15, name: 'Muhamad Holyone' },
+      { kelas: 'XII TKJ 1', no_absen: 16, name: 'Nabil Zaenal Assyqin' },
+      { kelas: 'XII TKJ 1', no_absen: 17, name: 'Kaila Kanzha' },
+      { kelas: 'XII TKJ 1', no_absen: 18, name: 'Keisya Tania Sibarani' },
+      { kelas: 'XII TKJ 1', no_absen: 19, name: 'Muhamad Irpan' },
+      { kelas: 'XII TKJ 1', no_absen: 20, name: 'Septian Roberto Silalahi' },
+      { kelas: 'XII TKJ 1', no_absen: 21, name: 'Muhammad Fariz Ramadhan' },
+      { kelas: 'XII TKJ 1', no_absen: 22, name: 'Raju Arya Ramana' },
+      { kelas: 'XII TKJ 1', no_absen: 23, name: 'Shapa Alipiandi' },
+      { kelas: 'XII TKJ 1', no_absen: 24, name: 'Anna Tasya' },
+      { kelas: 'XII TKJ 1', no_absen: 25, name: 'Ratu Habibah' },
+      { kelas: 'XII TKJ 1', no_absen: 26, name: 'Dzakii Pratama Haritahta' },
+      { kelas: 'XII TKJ 1', no_absen: 27, name: 'Raihan Mufadzal Zaki' },
+      { kelas: 'XII TKJ 2', no_absen: 1, name: 'Abib Maulana' },
+      { kelas: 'XII TKJ 2', no_absen: 2, name: 'Ahmad Daffa Ariansyah' },
+      { kelas: 'XII TKJ 2', no_absen: 3, name: 'Allysia Putri Sagita' },
+      { kelas: 'XII TKJ 2', no_absen: 4, name: 'Calvin Ryuki Wijaya' },
+      { kelas: 'XII TKJ 2', no_absen: 5, name: 'Casey Amalia Zahra' },
+      { kelas: 'XII TKJ 2', no_absen: 6, name: 'Chika Aulia' },
+      { kelas: 'XII TKJ 2', no_absen: 7, name: 'Dianah Puspita Sari' },
+      { kelas: 'XII TKJ 2', no_absen: 8, name: 'Esa Wiratama' },
+      { kelas: 'XII TKJ 2', no_absen: 9, name: 'Fakhrael Anwar' },
+      { kelas: 'XII TKJ 2', no_absen: 10, name: 'Hidayat Tri Pamungkas' },
+      { kelas: 'XII TKJ 2', no_absen: 11, name: 'Junita' },
+      { kelas: 'XII TKJ 2', no_absen: 12, name: 'M. Nizar Kurniansyah' },
+      { kelas: 'XII TKJ 2', no_absen: 13, name: 'Melisa' },
+      { kelas: 'XII TKJ 2', no_absen: 14, name: 'Muhammad Rafa Maulana' },
+      { kelas: 'XII TKJ 2', no_absen: 15, name: 'Nadila Julia Safitri' },
+      { kelas: 'XII TKJ 2', no_absen: 16, name: 'Nadin Sri Handayani' },
+      { kelas: 'XII TKJ 2', no_absen: 17, name: 'Najla Chalisa' },
+      { kelas: 'XII TKJ 2', no_absen: 18, name: 'Pranoto Damar Galih' },
+      { kelas: 'XII TKJ 2', no_absen: 19, name: 'Puput Hanifah' },
+      { kelas: 'XII TKJ 2', no_absen: 20, name: 'Rahmah Fauziah' },
+      { kelas: 'XII TKJ 2', no_absen: 21, name: 'Rizky Pratama' },
+      { kelas: 'XII TKJ 2', no_absen: 22, name: 'Sabrina Amanda Putri' },
+      { kelas: 'XII TKJ 2', no_absen: 23, name: 'Salfa Nazhifa Savanna' },
+      { kelas: 'XII TKJ 2', no_absen: 24, name: 'Sarah Amalia' },
+      { kelas: 'XII TKJ 2', no_absen: 25, name: 'Satria Fitriandanu' },
+      { kelas: 'XII TKJ 2', no_absen: 26, name: 'Syahlum Al-Rashid' },
+      { kelas: 'XII TKJ 2', no_absen: 27, name: 'T.B Reihan Martin' },
+      { kelas: 'XII TKJ 2', no_absen: 28, name: 'Tegar Suripto' }
+    ].map((s, idx) => ({ id: idx + 1, ...s, project_id: null, has_pin: false, pin: '' }));
+
+    function getLocalDb() {
+      const raw = localStorage.getItem('ta_tkj_local_db');
+      if (raw) {
+        try { return JSON.parse(raw); } catch {}
+      }
+      const initial = {
+        students: JSON.parse(JSON.stringify(SEED_STUDENTS)),
+        projects: [],
+        settings: { adminName: 'Allan Parindera, S.Kom', adminPass: 'guru123', deadline: '2026-12-18' },
+        nextProjId: 1
+      };
+      localStorage.setItem('ta_tkj_local_db', JSON.stringify(initial));
+      return initial;
+    }
+
+    function saveLocalDb(db) {
+      localStorage.setItem('ta_tkj_local_db', JSON.stringify(db));
+    }
+
+    function localApi(action, payload) {
+      const db = getLocalDb();
+      const user = AppState.user && AppState.user.role === 'admin' ? AppState.user : { role: 'guest' };
+
+      if (action === 'state') {
+        const byProject = new Map();
+        for (const s of db.students) {
+          if (s.project_id) {
+            if (!byProject.has(s.project_id)) byProject.set(s.project_id, []);
+            byProject.get(s.project_id).push({ id: s.id, no_absen: s.no_absen, name: s.name });
+          }
+        }
+        return {
+          students: db.students.map(s => ({ id: s.id, kelas: s.kelas, no_absen: s.no_absen, name: s.name, project_id: s.project_id, has_pin: Boolean(s.pin) })),
+          projects: db.projects.map(p => ({ ...p, members: byProject.get(p.id) || [] })),
+          settings: { adminName: db.settings.adminName, deadline: db.settings.deadline, customPass: db.settings.adminPass !== 'guru123' },
+          user
+        };
+      }
+
+      if (action === 'login') {
+        if (payload.password !== db.settings.adminPass) throw new Error('Password penguji salah.');
+        const u = { role: 'admin', name: db.settings.adminName };
+        return { token: 'local-token-admin', user: u };
+      }
+
+      if (action === 'changeAdminPassword') {
+        if (user.role !== 'admin') throw new Error('Akses khusus guru penguji.');
+        if (payload.old_password !== db.settings.adminPass) throw new Error('Password lama tidak sesuai.');
+        if (!payload.new_password || payload.new_password.length < 6) throw new Error('Password baru minimal 6 karakter.');
+        db.settings.adminPass = String(payload.new_password).trim();
+        if (payload.admin_name) db.settings.adminName = String(payload.admin_name).trim();
+        saveLocalDb(db);
+        const u = { role: 'admin', name: db.settings.adminName };
+        return { token: 'local-token-admin', user: u };
+      }
+
+      if (action === 'submitProject') {
+        const lead = db.students.find(s => s.id === Number(payload.lead_student_id));
+        if (!lead) throw new Error('Data siswa tidak ditemukan.');
+
+        const pin = String(payload.pin || '').trim();
+        if (user.role !== 'admin') {
+          if (!/^\d{4}$/.test(pin)) throw new Error('PIN siswa wajib 4 digit angka.');
+          if (lead.pin && lead.pin !== pin) throw new Error('PIN 4 digit salah. Minta guru reset PIN jika lupa.');
+        }
+
+        const title = String(payload.title || '').trim();
+        if (title.length < 4) throw new Error('Judul projek minimal 4 karakter.');
+        const primaryUrl = String(payload.primary_url || '').trim();
+        if (!/^https?:\/\//i.test(primaryUrl)) throw new Error('URL wajib diawali https://');
+        if (/localhost|127\.0\.0\.1|192\.168\./i.test(primaryUrl)) throw new Error('URL lokal (localhost) ditolak.');
+
+        if (!lead.pin && /^\d{4}$/.test(pin)) lead.pin = pin;
+
+        let proj = lead.project_id ? db.projects.find(p => p.id === lead.project_id) : null;
+        if (proj) {
+          proj.title = title;
+          proj.category = payload.category;
+          proj.delivery_mode = payload.delivery_mode;
+          proj.primary_url = primaryUrl;
+          proj.repo_url = payload.repo_url || '';
+          proj.target_platform = payload.target_platform || '';
+          proj.install_guide = payload.install_guide || '';
+          proj.demo_account = payload.demo_account || '';
+          proj.summary = payload.summary || '';
+          if (proj.status === 'REVISI WAJIB') proj.status = 'MENUNGGU UJI';
+          proj.updated_at = new Date().toISOString();
+        } else {
+          proj = {
+            id: db.nextProjId++,
+            kelas: lead.kelas,
+            lead_student_id: lead.id,
+            title,
+            category: payload.category,
+            delivery_mode: payload.delivery_mode,
+            primary_url: primaryUrl,
+            repo_url: payload.repo_url || '',
+            target_platform: payload.target_platform || '',
+            install_guide: payload.install_guide || '',
+            demo_account: payload.demo_account || '',
+            summary: payload.summary || '',
+            status: 'MENUNGGU UJI',
+            score_func: 0,
+            score_ui: 0,
+            score_tech: 0,
+            score_total: 0,
+            reviewer_note: '',
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          db.projects.unshift(proj);
+        }
+
+        const memberSet = new Set([lead.id, ...(payload.member_ids || []).map(Number)]);
+        for (const s of db.students) {
+          if (s.project_id === proj.id) s.project_id = null;
+        }
+        for (const id of memberSet) {
+          const s = db.students.find(x => x.id === id);
+          if (s) s.project_id = proj.id;
+        }
+
+        saveLocalDb(db);
+        return { ok: true, project_id: proj.id, ...localApi('state', {}) };
+      }
+
+      if (action === 'gradeProject') {
+        if (user.role !== 'admin') throw new Error('Hanya guru penguji yang dapat memberi nilai.');
+        const proj = db.projects.find(p => p.id === Number(payload.project_id));
+        if (!proj) throw new Error('Projek tidak ditemukan.');
+        proj.status = payload.status;
+        proj.score_func = Number(payload.score_func || 0);
+        proj.score_ui = Number(payload.score_ui || 0);
+        proj.score_tech = Number(payload.score_tech || 0);
+        proj.score_total = Math.round((proj.score_func * 0.4 + proj.score_ui * 0.3 + proj.score_tech * 0.3) * 10) / 10;
+        proj.reviewer_note = String(payload.reviewer_note || '').trim();
+        saveLocalDb(db);
+        return { ok: true, ...localApi('state', {}) };
+      }
+
+      if (action === 'resetStudentPin') {
+        if (user.role !== 'admin') throw new Error('Hanya guru penguji yang dapat mereset PIN.');
+        const s = db.students.find(x => x.id === Number(payload.student_id));
+        if (s) s.pin = '';
+        saveLocalDb(db);
+        return { ok: true, ...localApi('state', {}) };
+      }
+
+      if (action === 'deleteProject') {
+        if (user.role !== 'admin') throw new Error('Hanya guru penguji yang dapat menghapus.');
+        const pid = Number(payload.project_id);
+        db.projects = db.projects.filter(p => p.id !== pid);
+        for (const s of db.students) {
+          if (s.project_id === pid) s.project_id = null;
+        }
+        saveLocalDb(db);
+        return { ok: true, ...localApi('state', {}) };
+      }
+
+      throw new Error('Aksi tidak dikenal: ' + action);
+    }
+
+    async function api(action, payload = {}) {
+      if (isStaticMode) {
+        return localApi(action, payload);
+      }
+      try {
+        const headers = { 'content-type': 'application/json' };
+        if (AppState.token) headers['authorization'] = 'Bearer ' + AppState.token;
+        const res = await fetch('/api', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ action, ...payload })
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (res.status === 404 || !contentType.includes('application/json')) {
+          console.warn('API endpoint tidak aktif (mode statis terdeteksi). Menggunakan penyimpanan browser.');
+          isStaticMode = true;
+          return localApi(action, payload);
+        }
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Terjadi kesalahan pada server');
+        }
+        return data;
+      } catch (err) {
+        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          console.warn('Jaringan gagal, beralih ke penyimpanan lokal.');
+          isStaticMode = true;
+          return localApi(action, payload);
+        }
+        throw err;
+      }
+    }
+
+    // Refresh Data State
+    async function syncState() {
+      try {
+        const data = await api('state');
+        AppState.students = data.students || [];
+        AppState.projects = data.projects || [];
+        AppState.settings = data.settings || {};
+        AppState.user = data.user || { role: 'guest' };
+        renderAll();
+      } catch (err) {
+        console.error('Sync error:', err);
+      }
+    }
+
+    // Tab View Switching
+    function setView(viewName) {
+      AppState.activeView = viewName;
+      document.querySelectorAll('.view-panel').forEach(el => el.hidden = true);
+      document.querySelectorAll('[data-view]').forEach(btn => {
+        const match = btn.dataset.view === viewName;
+        btn.classList.toggle('is-active', match);
+        btn.setAttribute('aria-selected', match ? 'true' : 'false');
+      });
+
+      if (viewName === 'workbench') {
+        document.getElementById('viewWorkbench').hidden = false;
+        renderWorkbench();
+      } else if (viewName === 'roster') {
+        document.getElementById('viewRoster').hidden = false;
+        renderRoster();
+      } else if (viewName === 'submit') {
+        document.getElementById('viewSubmit').hidden = false;
+        populateFormStudents();
+      }
+    }
+
+    // Render Stats
+    function renderTally() {
+      const totalStudents = AppState.students.length || 55;
+      const projects = AppState.projects;
+      const verified = projects.filter(p => p.status === 'SIAP PAKAI').length;
+      const revision = projects.filter(p => p.status === 'REVISI WAJIB').length;
+
+      document.getElementById('tallyTotalStudents').textContent = totalStudents;
+      document.getElementById('tallySubmitted').textContent = projects.length;
+      document.getElementById('tallyVerified').textContent = verified;
+      document.getElementById('tallyRevision').textContent = revision;
+
+      if (AppState.settings.deadline) {
+        document.getElementById('deadlineTag').textContent = 'Batas Waktu: ' + AppState.settings.deadline;
+      }
+    }
+
+    // Render Auth Topbar Area
+    function renderAuthBar() {
+      const area = document.getElementById('authArea');
+      if (AppState.user && AppState.user.role === 'admin') {
+        area.innerHTML = `
+          <div class="tag-row">
+            <span class="tag" style="background: var(--color-accent-wash); color: var(--color-accent-deep);">Penguji: ${escapeHtml(AppState.user.name || 'Guru')}</span>
+            <button type="button" class="btn btn-sm" id="btnChangePassModal">Ganti Sandi</button>
+            <button type="button" class="btn btn-sm btn-danger" id="btnLogout">Keluar</button>
+          </div>
+        `;
+        document.getElementById('btnChangePassModal').onclick = () => {
+          document.getElementById('inputAdminName').value = AppState.user.name || '';
+          document.getElementById('modalChangePass').hidden = false;
+        };
+        document.getElementById('btnLogout').onclick = () => {
+          AppState.token = '';
+          localStorage.removeItem('ta_tkj_token');
+          AppState.user = { role: 'guest' };
+          syncState();
+        };
+      } else {
+        area.innerHTML = `<button type="button" class="btn btn-sm" id="btnLoginModal">Login Guru</button>`;
+        document.getElementById('btnLoginModal').onclick = () => {
+          document.getElementById('loginErrorMsg').hidden = true;
+          document.getElementById('modalLogin').hidden = false;
+        };
+      }
+    }
+
+    // Render Workbench & Project List
+    function renderWorkbench() {
+      const container = document.getElementById('projectListContainer');
+      const q = AppState.searchQuery.toLowerCase();
+      
+      let filtered = AppState.projects.filter(p => {
+        if (AppState.filterClass !== 'ALL' && p.kelas !== AppState.filterClass) return false;
+        if (AppState.filterCategory !== 'ALL' && p.category !== AppState.filterCategory) return false;
+        if (AppState.filterStatus !== 'ALL' && p.status !== AppState.filterStatus) return false;
+        if (q) {
+          const matchTitle = p.title.toLowerCase().includes(q);
+          const matchAuthor = (p.members || []).some(m => m.name.toLowerCase().includes(q));
+          if (!matchTitle && !matchAuthor) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('projectCountLabel').textContent = `${filtered.length} karya`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="state-panel">
+            <p>Belum ada karya yang sesuai dengan filter saat ini.</p>
+          </div>
+        `;
+        renderInspector(null);
+        return;
+      }
+
+      // If no selection or selected not in filtered list, select first
+      if (!AppState.selectedProjectId || !filtered.some(p => p.id === AppState.selectedProjectId)) {
+        AppState.selectedProjectId = filtered[0].id;
+      }
+
+      container.innerHTML = filtered.map(p => {
+        const isSel = p.id === AppState.selectedProjectId;
+        const authorNames = (p.members || []).map(m => m.name).join(', ') || 'Siswa';
+        const statusClass = p.status === 'SIAP PAKAI' ? 'status-ok' : (p.status === 'REVISI WAJIB' ? 'status-err' : 'status-warn');
+        const scoreDisplay = p.score_total > 0 ? `<span class="score-pill">Nilai: ${p.score_total}</span>` : '';
+
+        return `
+          <button type="button" class="project-item ${isSel ? 'is-selected' : ''}" data-project-id="${p.id}">
+            <div class="project-item-top">
+              <span class="project-title">${escapeHtml(p.title)}</span>
+              <span class="status-text ${statusClass}">${p.status}</span>
+            </div>
+            <span class="project-authors">${escapeHtml(p.kelas)} &middot; ${escapeHtml(authorNames)}</span>
+            <p class="project-summary">${escapeHtml(p.summary || '')}</p>
+            <div class="project-foot">
+              <div class="tag-row">
+                <span class="tag">${p.category}</span>
+                <span class="tag">${p.delivery_mode === 'WEB_LIVE' ? 'Live Web' : 'Install'}</span>
+              </div>
+              ${scoreDisplay}
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      container.querySelectorAll('[data-project-id]').forEach(btn => {
+        btn.onclick = () => {
+          AppState.selectedProjectId = Number(btn.dataset.projectId);
+          renderWorkbench();
+        };
+      });
+
+      const activeProject = AppState.projects.find(p => p.id === AppState.selectedProjectId);
+      renderInspector(activeProject);
+    }
+
+    // Render Inspector (Split-Screen Right Pane)
+    function renderInspector(project) {
+      const headerTitle = document.getElementById('inspectorHeaderTitle');
+      const headerTags = document.getElementById('inspectorHeaderTags');
+      const content = document.getElementById('inspectorContent');
+
+      if (!project) {
+        headerTitle.textContent = 'Panel Pengujian Aplikasi';
+        headerTags.innerHTML = '';
+        content.innerHTML = `
+          <div class="state-panel">
+            <p>Pilih salah satu projek di daftar sebelah kiri untuk menguji live webview, memeriksa installer, dan melakukan verifikasi nilai.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const statusClass = project.status === 'SIAP PAKAI' ? 'status-ok' : (project.status === 'REVISI WAJIB' ? 'status-err' : 'status-warn');
+      headerTitle.textContent = project.title;
+      headerTags.innerHTML = `
+        <span class="tag">${escapeHtml(project.kelas)}</span>
+        <span class="status-text ${statusClass}">${project.status}</span>
+        ${project.score_total > 0 ? `<span class="score-pill">Total: ${project.score_total}</span>` : ''}
+      `;
+
+      const membersList = (project.members || []).map(m => `${m.name} (Absen ${m.no_absen})`).join(', ');
+
+      let stageHtml = '';
+      if (project.delivery_mode === 'WEB_LIVE') {
+        stageHtml = `
+          <div class="preview-stage">
+            <div class="preview-bar">
+              <div style="display:flex; align-items:center; gap:var(--space-xs); min-width:0;">
+                <span class="preview-url">${escapeHtml(project.primary_url)}</span>
+              </div>
+              <div class="preview-actions">
+                <div class="tray" role="group" aria-label="Viewport Preview">
+                  <button type="button" class="tray-btn ${AppState.previewDeviceMode === 'desktop' ? 'is-active' : ''}" id="btnViewDesktop">Desktop</button>
+                  <button type="button" class="tray-btn ${AppState.previewDeviceMode === 'mobile' ? 'is-active' : ''}" id="btnViewMobile">HP 390px</button>
+                </div>
+                <a href="${escapeHtml(project.primary_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm">Buka Tab Baru</a>
+              </div>
+            </div>
+            <div class="frame-wrap ${AppState.previewDeviceMode === 'mobile' ? 'is-mobile-viewport' : ''}">
+              <iframe src="${escapeHtml(project.primary_url)}" sandbox="allow-scripts allow-forms allow-same-origin allow-popups" title="Pratinjau Aplikasi Live"></iframe>
+            </div>
+          </div>
+        `;
+      } else {
+        stageHtml = `
+          <div class="preview-stage">
+            <div class="preview-bar">
+              <span class="preview-url">Tautan Rilis: ${escapeHtml(project.primary_url)}</span>
+              <a href="${escapeHtml(project.primary_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Unduh Installer / Akses File</a>
+            </div>
+            <div class="install-box">
+              <div class="tag-row">
+                <span class="tag" style="background: var(--color-graphite-2); color: var(--color-graphite-ink);">Target: ${escapeHtml(project.target_platform || 'Perangkat Standar')}</span>
+              </div>
+              <p style="font-size: var(--text-xs); color: var(--color-graphite-muted);">Langkah Instalasi & Cara Pengujian:</p>
+              <pre class="install-pre">${escapeHtml(project.install_guide || '(Tidak ada panduan rilis khusus)')}</pre>
+            </div>
+          </div>
+        `;
+      }
+
+      let revisionBox = '';
+      if (project.reviewer_note) {
+        revisionBox = `
+          <div class="reviewer-callout">
+            <strong>Catatan Penguji / Evaluasi:</strong>
+            <p style="margin-top: var(--space-3xs);">${escapeHtml(project.reviewer_note)}</p>
+          </div>
+        `;
+      }
+
+      let gradingBox = '';
+      if (AppState.user && AppState.user.role === 'admin') {
+        gradingBox = `
+          <form id="formGrading" class="grade-box">
+            <span class="pane-title" style="font-size: var(--text-sm);">Form Penilaian & Verifikasi (Akses Guru)</span>
+            <div class="grade-grid">
+              <div class="field">
+                <label for="inputScoreFunc">Fungsionalitas (40%)</label>
+                <input type="number" id="inputScoreFunc" class="input mono-input" min="0" max="100" value="${project.score_func || 0}" required>
+              </div>
+              <div class="field">
+                <label for="inputScoreUi">UI/UX & Kerapian (30%)</label>
+                <input type="number" id="inputScoreUi" class="input mono-input" min="0" max="100" value="${project.score_ui || 0}" required>
+              </div>
+              <div class="field">
+                <label for="inputScoreTech">Kemanfaatan & Teknis (30%)</label>
+                <input type="number" id="inputScoreTech" class="input mono-input" min="0" max="100" value="${project.score_tech || 0}" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="selectStatusVerif">Status Kelayakan Karya *</label>
+              <select id="selectStatusVerif" class="select" required>
+                <option value="SIAP PAKAI" ${project.status === 'SIAP PAKAI' ? 'selected' : ''}>SIAP PAKAI (Terverifikasi Lolos)</option>
+                <option value="MENUNGGU UJI" ${project.status === 'MENUNGGU UJI' ? 'selected' : ''}>MENUNGGU UJI (Dalam Antrean)</option>
+                <option value="REVISI WAJIB" ${project.status === 'REVISI WAJIB' ? 'selected' : ''}>REVISI WAJIB (Belum Layak / Ada Bug)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="inputReviewerNote">Catatan Penguji / Perbaikan untuk Siswa</label>
+              <textarea id="inputReviewerNote" class="textarea" placeholder="Wajib diisi jika status REVISI WAJIB...">${escapeHtml(project.reviewer_note || '')}</textarea>
+            </div>
+            <div class="btn-row" style="justify-content: space-between; margin-top: var(--space-2xs);">
+              <button type="button" class="btn btn-sm btn-danger" id="btnDeleteSubmission">Hapus Pengumpulan</button>
+              <button type="submit" class="btn btn-sm btn-primary">Simpan Hasil Verifikasi</button>
+            </div>
+          </form>
+        `;
+      }
+
+      content.innerHTML = `
+        <dl class="meta-dl">
+          <div>
+            <dt>Tim / Pembuat</dt>
+            <dd>${escapeHtml(membersList)}</dd>
+          </div>
+          <div>
+            <dt>Kategori & Distribusi</dt>
+            <dd>${escapeHtml(project.category)} &middot; ${project.delivery_mode === 'WEB_LIVE' ? 'Web Liveview' : 'Installable'}</dd>
+          </div>
+          <div>
+            <dt>Akses Demo / Akun Login</dt>
+            <dd class="mono">${escapeHtml(project.demo_account || 'Tanpa login')}</dd>
+          </div>
+          <div>
+            <dt>Repositori Kode</dt>
+            <dd class="mono">${project.repo_url ? `<a href="${escapeHtml(project.repo_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.repo_url)}</a>` : '-'}</dd>
+          </div>
+        </dl>
+
+        ${stageHtml}
+        ${revisionBox}
+        ${gradingBox}
+      `;
+
+      // Event listener for viewport mode
+      const btnDesk = document.getElementById('btnViewDesktop');
+      const btnMob = document.getElementById('btnViewMobile');
+      if (btnDesk && btnMob) {
+        btnDesk.onclick = () => { AppState.previewDeviceMode = 'desktop'; renderInspector(project); };
+        btnMob.onclick = () => { AppState.previewDeviceMode = 'mobile'; renderInspector(project); };
+      }
+
+      // Grading Form Submit
+      const formGrading = document.getElementById('formGrading');
+      if (formGrading) {
+        formGrading.onsubmit = async (e) => {
+          e.preventDefault();
+          const sFunc = Number(document.getElementById('inputScoreFunc').value);
+          const sUi = Number(document.getElementById('inputScoreUi').value);
+          const sTech = Number(document.getElementById('inputScoreTech').value);
+          const status = document.getElementById('selectStatusVerif').value;
+          const reviewerNote = document.getElementById('inputReviewerNote').value;
+
+          try {
+            await api('gradeProject', {
+              project_id: project.id,
+              score_func: sFunc,
+              score_ui: sUi,
+              score_tech: sTech,
+              status,
+              reviewer_note: reviewerNote
+            });
+            await syncState();
+          } catch (err) {
+            alert(err.message);
+          }
+        };
+
+        const btnDel = document.getElementById('btnDeleteSubmission');
+        if (btnDel) {
+          btnDel.onclick = async () => {
+            if (confirm(`Yakin ingin menghapus pengumpulan "${project.title}"? Status siswa akan kembali Belum Kumpul.`)) {
+              try {
+                await api('deleteProject', { project_id: project.id });
+                AppState.selectedProjectId = null;
+                await syncState();
+              } catch (err) {
+                alert(err.message);
+              }
+            }
+          };
+        }
+      }
+    }
+
+    // Render View 2: Roster Table
+    function renderRoster() {
+      const tbody = document.getElementById('rosterTableBody');
+      const targetClass = AppState.rosterClass;
+      const q = AppState.rosterSearch.toLowerCase();
+
+      document.getElementById('rosterTableTitle').textContent = `Daftar Nilai & Status Siswa ${targetClass}`;
+
+      let students = AppState.students.filter(s => s.kelas === targetClass);
+      document.getElementById('rosterCountLabel').textContent = `${students.length} siswa terdaftar`;
+
+      const projectMap = new Map(AppState.projects.map(p => [p.id, p]));
+
+      let filtered = students.filter(s => {
+        const p = s.project_id ? projectMap.get(s.project_id) : null;
+        const statusKey = p ? p.status : 'BELUM';
+        if (AppState.rosterStatus !== 'ALL') {
+          if (AppState.rosterStatus === 'BELUM' && p) return false;
+          if (AppState.rosterStatus !== 'BELUM' && (!p || p.status !== AppState.rosterStatus)) return false;
+        }
+        if (q && !s.name.toLowerCase().includes(q) && !(p && p.title.toLowerCase().includes(q))) {
+          return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:var(--space-lg);">Tidak ada data siswa yang cocok dengan filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(s => {
+        const p = s.project_id ? projectMap.get(s.project_id) : null;
+        let statusBadge = '<span class="status-text status-muted">BELUM KUMPUL</span>';
+        if (p) {
+          const sClass = p.status === 'SIAP PAKAI' ? 'status-ok' : (p.status === 'REVISI WAJIB' ? 'status-err' : 'status-warn');
+          statusBadge = `<span class="status-text ${sClass}">${p.status}</span>`;
+        }
+
+        const projectTitle = p ? `<a href="#workbench" class="link-inspect" data-goto-proj="${p.id}">${escapeHtml(p.title)}</a>` : '-';
+        const deliveryMode = p ? (p.delivery_mode === 'WEB_LIVE' ? 'Web Live' : 'Installer') : '-';
+        const sFunc = p ? (p.score_func || 0) : '-';
+        const sUi = p ? (p.score_ui || 0) : '-';
+        const sTech = p ? (p.score_tech || 0) : '-';
+        const sTotal = p && p.score_total > 0 ? `<strong>${p.score_total}</strong>` : '-';
+
+        let resetPinBtn = '';
+        if (AppState.user && AppState.user.role === 'admin' && s.has_pin) {
+          resetPinBtn = `<button type="button" class="btn btn-sm btn-danger btn-reset-pin" data-student-id="${s.id}" data-student-name="${escapeHtml(s.name)}" style="margin-top:2px;">Reset PIN</button>`;
+        }
+
+        return `
+          <tr>
+            <td class="mono-cell" data-label="No Absen">${s.no_absen}</td>
+            <td data-label="Nama Siswa">
+              <strong>${escapeHtml(s.name)}</strong>
+              ${s.has_pin ? `<span style="font-size:10px; color:var(--color-muted); display:block;">[PIN Terkunci]</span>` : ''}
+            </td>
+            <td data-label="Status">${statusBadge}</td>
+            <td data-label="Judul">${projectTitle}</td>
+            <td data-label="Mode">${deliveryMode}</td>
+            <td class="num mono-cell" data-label="Fungsi">${sFunc}</td>
+            <td class="num mono-cell" data-label="UI/UX">${sUi}</td>
+            <td class="num mono-cell" data-label="Teknis">${sTech}</td>
+            <td class="num mono-cell" data-label="Total">${sTotal}</td>
+            <td style="text-align: right;" data-label="Aksi">
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                ${p ? `<button type="button" class="btn btn-sm btn-inspect-row" data-goto-proj="${p.id}">Uji Karya</button>` : `<button type="button" class="btn btn-sm btn-submit-for" data-class="${s.kelas}" data-student-id="${s.id}">Kumpul</button>`}
+                ${resetPinBtn}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Click to inspect
+      tbody.querySelectorAll('[data-goto-proj]').forEach(el => {
+        el.onclick = (e) => {
+          e.preventDefault();
+          AppState.selectedProjectId = Number(el.dataset.gotoProj);
+          setView('workbench');
+        };
+      });
+
+      // Click to submit for student
+      tbody.querySelectorAll('.btn-submit-for').forEach(btn => {
+        btn.onclick = () => {
+          const k = btn.dataset.class;
+          const sid = btn.dataset.studentId;
+          document.getElementById('formKelas').value = k;
+          populateFormStudents();
+          document.getElementById('formStudent').value = sid;
+          onFormStudentChange();
+          setView('submit');
+        };
+      });
+
+      // Click to reset PIN
+      tbody.querySelectorAll('.btn-reset-pin').forEach(btn => {
+        btn.onclick = () => {
+          activeResetStudentId = Number(btn.dataset.studentId);
+          document.getElementById('resetPinStudentLabel').textContent = `Reset PIN untuk: ${btn.dataset.studentName}`;
+          document.getElementById('resetPinAlert').hidden = true;
+          document.getElementById('modalResetPin').hidden = false;
+        };
+      });
+    }
+
+    let activeResetStudentId = null;
+    document.getElementById('btnCloseResetPin').onclick = () => {
+      document.getElementById('modalResetPin').hidden = true;
+    };
+    document.getElementById('btnConfirmResetPin').onclick = async () => {
+      if (!activeResetStudentId) return;
+      try {
+        await api('resetStudentPin', { student_id: activeResetStudentId });
+        document.getElementById('modalResetPin').hidden = true;
+        await syncState();
+      } catch (err) {
+        const el = document.getElementById('resetPinAlert');
+        el.textContent = err.message;
+        el.hidden = false;
+      }
+    };
+
+    // Render Form Students Dropdown & Teammates
+    function populateFormStudents() {
+      const k = document.getElementById('formKelas').value;
+      const select = document.getElementById('formStudent');
+      const curVal = select.value;
+
+      const studentsInClass = AppState.students.filter(s => s.kelas === k);
+      select.innerHTML = `<option value="">Pilih nama siswa...</option>` +
+        studentsInClass.map(s => `<option value="${s.id}">${s.no_absen}. ${escapeHtml(s.name)}</option>`).join('');
+
+      if (curVal && studentsInClass.some(s => String(s.id) === String(curVal))) {
+        select.value = curVal;
+      }
+      populateTeammates();
+    }
+
+    function populateTeammates() {
+      const k = document.getElementById('formKelas').value;
+      const leadId = Number(document.getElementById('formStudent').value);
+      const grid = document.getElementById('memberCheckboxGrid');
+
+      const classmates = AppState.students.filter(s => s.kelas === k && s.id !== leadId);
+      if (classmates.length === 0) {
+        grid.innerHTML = `<p style="font-size: var(--text-xs); color: var(--color-muted);">Pilih nama ketua terlebih dahulu.</p>`;
+        return;
+      }
+
+      grid.innerHTML = classmates.map(s => `
+        <label class="member-check">
+          <input type="checkbox" name="teamMember" value="${s.id}">
+          <span>${s.no_absen}. ${escapeHtml(s.name)}</span>
+        </label>
+      `).join('');
+    }
+
+    function onFormStudentChange() {
+      const sid = Number(document.getElementById('formStudent').value);
+      const student = AppState.students.find(s => s.id === sid);
+      const hint = document.getElementById('formStudentHint');
+      populateTeammates();
+
+      if (!student) {
+        hint.textContent = 'Data absen terhubung otomatis.';
+        return;
+      }
+
+      if (student.has_pin) {
+        hint.textContent = 'Siswa sudah pernah membuat PIN. Masukkan PIN 4 digit untuk mengedit/memperbarui data.';
+      } else {
+        hint.textContent = 'Pengumpulan perdana: Buat PIN 4 digit baru untuk mengunci karya.';
+      }
+
+      // If student already has a project, pre-fill form
+      if (student.project_id) {
+        const p = AppState.projects.find(x => x.id === student.project_id);
+        if (p) {
+          document.getElementById('formTitle').value = p.title || '';
+          document.getElementById('formCategory').value = p.category || 'Web App';
+          document.getElementById('formDeliveryMode').value = p.delivery_mode || 'WEB_LIVE';
+          document.getElementById('formPrimaryUrl').value = p.primary_url || '';
+          document.getElementById('formRepoUrl').value = p.repo_url || '';
+          document.getElementById('formTargetPlatform').value = p.target_platform || '';
+          document.getElementById('formInstallGuide').value = p.install_guide || '';
+          document.getElementById('formDemoAccount').value = p.demo_account || '';
+          document.getElementById('formSummary').value = p.summary || '';
+          onDeliveryModeChange();
+
+          // Check member boxes
+          const memberIds = new Set((p.members || []).map(m => String(m.id)));
+          document.querySelectorAll('input[name="teamMember"]').forEach(cb => {
+            cb.checked = memberIds.has(cb.value);
+          });
+        }
+      }
+    }
+
+    function onDeliveryModeChange() {
+      const mode = document.getElementById('formDeliveryMode').value;
+      const labelUrl = document.getElementById('labelPrimaryUrl');
+      const hintUrl = document.getElementById('hintPrimaryUrl');
+      const wrapPlat = document.getElementById('wrapTargetPlatform');
+      const wrapGuide = document.getElementById('wrapInstallGuide');
+      const inputUrl = document.getElementById('formPrimaryUrl');
+
+      if (mode === 'WEB_LIVE') {
+        labelUrl.textContent = 'URL Live Webview (https://...) *';
+        hintUrl.textContent = 'Tolak link localhost / 192.168.x.x. Wajib dapat diakses dari internet.';
+        inputUrl.placeholder = 'https://projek-saya.vercel.app';
+        wrapPlat.hidden = true;
+        wrapGuide.hidden = true;
+      } else {
+        labelUrl.textContent = 'URL Unduhan Release / Link Installer (APK / EXE / Bot) *';
+        hintUrl.textContent = 'Link publik langsung (Google Drive publik, Release GitHub, atau Telegram Bot link).';
+        inputUrl.placeholder = 'https://github.com/username/repo/releases/download/...';
+        wrapPlat.hidden = false;
+        wrapGuide.hidden = false;
+      }
+    }
+
+    // Submit Form Handler
+    document.getElementById('projectSubmitForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('submitAlertArea');
+      alertBox.innerHTML = '';
+
+      const leadId = Number(document.getElementById('formStudent').value);
+      if (!leadId) {
+        alertBox.innerHTML = `<div class="alert-bar alert-error">Pilih nama siswa ketua/pengumpul terlebih dahulu.</div>`;
+        return;
+      }
+
+      const pin = document.getElementById('formPin').value.trim();
+      const title = document.getElementById('formTitle').value.trim();
+      const category = document.getElementById('formCategory').value;
+      const deliveryMode = document.getElementById('formDeliveryMode').value;
+      const primaryUrl = document.getElementById('formPrimaryUrl').value.trim();
+      const repoUrl = document.getElementById('formRepoUrl').value.trim();
+      const targetPlatform = document.getElementById('formTargetPlatform').value.trim();
+      const installGuide = document.getElementById('formInstallGuide').value.trim();
+      const demoAccount = document.getElementById('formDemoAccount').value.trim();
+      const summary = document.getElementById('formSummary').value.trim();
+
+      const memberIds = Array.from(document.querySelectorAll('input[name="teamMember"]:checked')).map(cb => Number(cb.value));
+
+      const btnSubmit = document.getElementById('btnSubmitProject');
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Memvalidasi & Mengirim...';
+
+      try {
+        const res = await api('submitProject', {
+          lead_student_id: leadId,
+          pin,
+          title,
+          category,
+          delivery_mode: deliveryMode,
+          primary_url: primaryUrl,
+          repo_url: repoUrl,
+          target_platform: targetPlatform,
+          install_guide: installGuide,
+          demo_account: demoAccount,
+          summary,
+          member_ids: memberIds
+        });
+
+        alertBox.innerHTML = `<div class="alert-bar alert-ok">Tugas Akhir berhasil disimpan dan dikunci. Data langsung masuk ke Meja Uji Guru.</div>`;
+        await syncState();
+        setTimeout(() => {
+          AppState.selectedProjectId = res.project_id;
+          setView('workbench');
+        }, 1200);
+      } catch (err) {
+        alertBox.innerHTML = `<div class="alert-bar alert-error">${escapeHtml(err.message)}</div>`;
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Kirim & Kunci Tugas Akhir';
+      }
+    };
+
+    // CSV Export Generator
+    function exportRosterCsv() {
+      const targetClass = AppState.rosterClass;
+      const students = AppState.students.filter(s => s.kelas === targetClass);
+      const projectMap = new Map(AppState.projects.map(p => [p.id, p]));
+
+      const rows = [
+        ['No Absen', 'Kelas', 'Nama Siswa', 'Status TA', 'Judul Projek', 'Mode Rilis', 'URL Karya', 'Akun Demo', 'Nilai Fungsi (40%)', 'Nilai UI/UX (30%)', 'Nilai Teknis (30%)', 'Total Nilai', 'Catatan Penguji']
+      ];
+
+      for (const s of students) {
+        const p = s.project_id ? projectMap.get(s.project_id) : null;
+        rows.push([
+          s.no_absen,
+          s.kelas,
+          s.name,
+          p ? p.status : 'BELUM KUMPUL',
+          p ? p.title : '',
+          p ? (p.delivery_mode === 'WEB_LIVE' ? 'Web Live' : 'Installer') : '',
+          p ? p.primary_url : '',
+          p ? p.demo_account : '',
+          p ? p.score_func : '',
+          p ? p.score_ui : '',
+          p ? p.score_tech : '',
+          p ? p.score_total : '',
+          p ? p.reviewer_note : ''
+        ]);
+      }
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(r => r.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Rekap_Tugas_Akhir_${targetClass.replace(/\s+/g, '_')}_2026.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Modal & Form Handlers
+    document.getElementById('btnCloseLogin').onclick = () => document.getElementById('modalLogin').hidden = true;
+    document.getElementById('btnClosePass').onclick = () => document.getElementById('modalChangePass').hidden = true;
+
+    document.getElementById('formLoginGuru').onsubmit = async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById('loginErrorMsg');
+      errBox.hidden = true;
+      const password = document.getElementById('inputAdminPassword').value;
+      try {
+        const res = await api('login', { password });
+        AppState.token = res.token;
+        localStorage.setItem('ta_tkj_token', res.token);
+        AppState.user = res.user;
+        document.getElementById('modalLogin').hidden = true;
+        document.getElementById('inputAdminPassword').value = '';
+        await syncState();
+      } catch (err) {
+        errBox.textContent = err.message;
+        errBox.hidden = false;
+      }
+    };
+
+    document.getElementById('formChangePass').onsubmit = async (e) => {
+      e.preventDefault();
+      const msgBox = document.getElementById('changePassMsg');
+      msgBox.hidden = true;
+      const oldPass = document.getElementById('inputOldPass').value;
+      const newPass = document.getElementById('inputNewPass').value;
+      const adminName = document.getElementById('inputAdminName').value;
+
+      try {
+        const res = await api('changeAdminPassword', {
+          old_password: oldPass,
+          new_password: newPass,
+          admin_name: adminName
+        });
+        AppState.token = res.token;
+        localStorage.setItem('ta_tkj_token', res.token);
+        AppState.user = res.user;
+        msgBox.textContent = 'Password penguji berhasil diperbarui.';
+        msgBox.className = 'alert-bar alert-ok';
+        msgBox.hidden = false;
+        setTimeout(() => {
+          document.getElementById('modalChangePass').hidden = true;
+          document.getElementById('inputOldPass').value = '';
+          document.getElementById('inputNewPass').value = '';
+          renderAuthBar();
+        }, 1200);
+      } catch (err) {
+        msgBox.textContent = err.message;
+        msgBox.className = 'alert-bar alert-error';
+        msgBox.hidden = false;
+      }
+    };
+
+    // Global Event Wiring
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      btn.onclick = () => setView(btn.dataset.view);
+    });
+
+    document.getElementById('btnGoToSubmit').onclick = () => setView('submit');
+    document.getElementById('btnCancelSubmit').onclick = () => setView('workbench');
+
+    document.querySelectorAll('[data-class-filter]').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('[data-class-filter]').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        AppState.filterClass = btn.dataset.classFilter;
+        renderWorkbench();
+      };
+    });
+
+    document.getElementById('filterCategory').onchange = (e) => {
+      AppState.filterCategory = e.target.value;
+      renderWorkbench();
+    };
+
+    document.getElementById('filterStatus').onchange = (e) => {
+      AppState.filterStatus = e.target.value;
+      renderWorkbench();
+    };
+
+    document.getElementById('searchWorkbench').oninput = (e) => {
+      AppState.searchQuery = e.target.value;
+      renderWorkbench();
+    };
+
+    document.querySelectorAll('[data-roster-class]').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('[data-roster-class]').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        AppState.rosterClass = btn.dataset.rosterClass;
+        renderRoster();
+      };
+    });
+
+    document.getElementById('rosterStatusFilter').onchange = (e) => {
+      AppState.rosterStatus = e.target.value;
+      renderRoster();
+    };
+
+    document.getElementById('searchRoster').oninput = (e) => {
+      AppState.rosterSearch = e.target.value;
+      renderRoster();
+    };
+
+    document.getElementById('btnExportCsv').onclick = exportRosterCsv;
+
+    document.getElementById('formKelas').onchange = populateFormStudents;
+    document.getElementById('formStudent').onchange = onFormStudentChange;
+    document.getElementById('formDeliveryMode').onchange = onDeliveryModeChange;
+
+    function renderAll() {
+      renderAuthBar();
+      renderTally();
+      if (AppState.activeView === 'workbench') renderWorkbench();
+      else if (AppState.activeView === 'roster') renderRoster();
+      else if (AppState.activeView === 'submit') populateFormStudents();
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Init App
+    syncState();
+  </script>
+</body>
+</html>
