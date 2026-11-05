@@ -187,6 +187,7 @@
           </div>
 
           <div id="submitAlertArea"></div>
+          <div id="draftIndicator" style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); margin-bottom: var(--space-xs);"></div>
 
           <form id="projectSubmitForm" novalidate>
             <div class="form-row-2">
@@ -561,13 +562,24 @@
 
   <script type="module">
     // State Management
+    let initialUser = { role: 'guest' };
+    try {
+      const u = localStorage.getItem('ta_tkj_user');
+      if (u) initialUser = JSON.parse(u);
+    } catch {}
+
+    const VALID_VIEWS = ['workbench', 'roster', 'mystatus', 'submit', 'faq'];
+    const hashView = window.location.hash.replace(/^#/, '');
+    const savedView = localStorage.getItem('ta_tkj_active_view');
+    const initialView = VALID_VIEWS.includes(hashView) ? hashView : (VALID_VIEWS.includes(savedView) ? savedView : 'workbench');
+
     let AppState = {
       students: [],
       projects: [],
       settings: {},
-      user: { role: 'guest' },
+      user: initialUser,
       selectedProjectId: null,
-      activeView: 'workbench',
+      activeView: initialView,
       filterClass: 'ALL',
       filterCategory: 'ALL',
       filterStatus: 'ALL',
@@ -666,7 +678,8 @@
 
     function localApi(action, payload) {
       const db = getLocalDb();
-      const user = AppState.user && AppState.user.role === 'admin' ? AppState.user : { role: 'guest' };
+      const isAdmin = AppState.token === 'local-token-admin' || (AppState.user && AppState.user.role === 'admin');
+      const user = isAdmin ? { role: 'admin', name: db.settings.adminName } : { role: 'guest' };
 
       if (action === 'state') {
         const byProject = new Map();
@@ -853,7 +866,14 @@
         AppState.students = data.students || [];
         AppState.projects = data.projects || [];
         AppState.settings = data.settings || {};
-        AppState.user = data.user || { role: 'guest' };
+        if (data.user && data.user.role) {
+          AppState.user = data.user;
+          if (data.user.role === 'admin') {
+            localStorage.setItem('ta_tkj_user', JSON.stringify(data.user));
+          } else {
+            localStorage.removeItem('ta_tkj_user');
+          }
+        }
         renderAll();
       } catch (err) {
         console.error('Sync error:', err);
@@ -863,6 +883,8 @@
     // Tab View Switching
     function setView(viewName) {
       AppState.activeView = viewName;
+      localStorage.setItem('ta_tkj_active_view', viewName);
+      history.replaceState(null, '', '#' + viewName);
       document.querySelectorAll('.view-panel').forEach(el => el.hidden = true);
       document.querySelectorAll('[data-view]').forEach(btn => {
         const match = btn.dataset.view === viewName;
@@ -882,6 +904,7 @@
       } else if (viewName === 'submit') {
         document.getElementById('viewSubmit').hidden = false;
         populateFormStudents();
+        restoreFormDraft();
       } else if (viewName === 'faq') {
         document.getElementById('viewFaq').hidden = false;
       }
@@ -924,6 +947,7 @@
         document.getElementById('btnLogout').onclick = () => {
           AppState.token = '';
           localStorage.removeItem('ta_tkj_token');
+          localStorage.removeItem('ta_tkj_user');
           AppState.user = { role: 'guest' };
           syncState();
         };
@@ -1346,7 +1370,7 @@
       }
     }
 
-    function onFormStudentChange() {
+    function onFormStudentChange(skipPreFill = false) {
       const sid = Number(document.getElementById('formStudent').value);
       const student = AppState.students.find(s => s.id === sid);
       const hint = document.getElementById('formStudentHint');
@@ -1362,8 +1386,8 @@
         hint.textContent = 'Pengumpulan perdana: Buat PIN 4 digit baru untuk mengunci karya.';
       }
 
-      // If student already has a project, pre-fill form
-      if (student.project_id) {
+      // If student already has a project, pre-fill form unless restoring draft
+      if (!skipPreFill && student.project_id) {
         const p = AppState.projects.find(x => x.id === student.project_id);
         if (p) {
           document.getElementById('formTitle').value = p.title || '';
@@ -1377,6 +1401,89 @@
           document.getElementById('formSummary').value = p.summary || '';
           onDeliveryModeChange();
         }
+      }
+    }
+
+    // Form Draft Auto-Save & Recovery
+    function saveFormDraft() {
+      const draft = {
+        kelas: document.getElementById('formKelas')?.value || 'XII TKJ 1',
+        studentId: document.getElementById('formStudent')?.value || '',
+        pin: document.getElementById('formPin')?.value || '',
+        category: document.getElementById('formCategory')?.value || 'Web App',
+        deliveryMode: document.getElementById('formDeliveryMode')?.value || 'WEB_LIVE',
+        title: document.getElementById('formTitle')?.value || '',
+        primaryUrl: document.getElementById('formPrimaryUrl')?.value || '',
+        repoUrl: document.getElementById('formRepoUrl')?.value || '',
+        targetPlatform: document.getElementById('formTargetPlatform')?.value || '',
+        installGuide: document.getElementById('formInstallGuide')?.value || '',
+        demoAccount: document.getElementById('formDemoAccount')?.value || '',
+        summary: document.getElementById('formSummary')?.value || ''
+      };
+      if (draft.title || draft.primaryUrl || draft.summary || draft.studentId || draft.pin) {
+        localStorage.setItem('ta_tkj_form_draft', JSON.stringify(draft));
+        updateDraftIndicator(true);
+      }
+    }
+
+    function restoreFormDraft() {
+      const raw = localStorage.getItem('ta_tkj_form_draft');
+      if (!raw) {
+        updateDraftIndicator(false);
+        return false;
+      }
+      try {
+        const d = JSON.parse(raw);
+        if (d.kelas) document.getElementById('formKelas').value = d.kelas;
+        populateFormStudents();
+        if (d.studentId) {
+          document.getElementById('formStudent').value = d.studentId;
+          onFormStudentChange(true);
+        }
+        if (d.pin) document.getElementById('formPin').value = d.pin;
+        if (d.category) document.getElementById('formCategory').value = d.category;
+        if (d.deliveryMode) document.getElementById('formDeliveryMode').value = d.deliveryMode;
+        if (d.title) document.getElementById('formTitle').value = d.title;
+        if (d.primaryUrl) document.getElementById('formPrimaryUrl').value = d.primaryUrl;
+        if (d.repoUrl) document.getElementById('formRepoUrl').value = d.repoUrl;
+        if (d.targetPlatform) document.getElementById('formTargetPlatform').value = d.targetPlatform;
+        if (d.installGuide) document.getElementById('formInstallGuide').value = d.installGuide;
+        if (d.demoAccount) document.getElementById('formDemoAccount').value = d.demoAccount;
+        if (d.summary) document.getElementById('formSummary').value = d.summary;
+        onDeliveryModeChange();
+        updateDraftIndicator(true);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function clearFormDraft() {
+      localStorage.removeItem('ta_tkj_form_draft');
+      updateDraftIndicator(false);
+    }
+
+    function updateDraftIndicator(hasDraft) {
+      const el = document.getElementById('draftIndicator');
+      if (!el) return;
+      if (hasDraft) {
+        el.innerHTML = `
+          <span style="color: var(--color-accent); font-size: var(--text-xs); font-weight: 500;">
+            Draf isian tersimpan otomatis di perangkat Anda
+          </span>
+          <button type="button" class="btn btn-sm btn-danger" id="btnResetDraft" style="min-height: 28px; padding: 2px 10px; font-size: 11px;">
+            Hapus Draf
+          </button>
+        `;
+        document.getElementById('btnResetDraft').onclick = () => {
+          if (confirm('Hapus draf isian form yang tersimpan?')) {
+            clearFormDraft();
+            document.getElementById('projectSubmitForm').reset();
+            populateFormStudents();
+          }
+        };
+      } else {
+        el.innerHTML = '';
       }
     }
 
@@ -1446,6 +1553,7 @@
           summary
         });
 
+        clearFormDraft();
         alertBox.innerHTML = `<div class="alert-bar alert-ok">Tugas Akhir berhasil disimpan dan dikunci. Data langsung masuk ke Meja Uji Guru.</div>`;
         await syncState();
         setTimeout(() => {
@@ -1515,6 +1623,7 @@
         AppState.token = res.token;
         localStorage.setItem('ta_tkj_token', res.token);
         AppState.user = res.user;
+        localStorage.setItem('ta_tkj_user', JSON.stringify(res.user));
         document.getElementById('modalLogin').hidden = true;
         document.getElementById('inputAdminPassword').value = '';
         await syncState();
@@ -1541,6 +1650,7 @@
         AppState.token = res.token;
         localStorage.setItem('ta_tkj_token', res.token);
         AppState.user = res.user;
+        localStorage.setItem('ta_tkj_user', JSON.stringify(res.user));
         msgBox.textContent = 'Password penguji berhasil diperbarui.';
         msgBox.className = 'alert-bar alert-ok';
         msgBox.hidden = false;
@@ -1804,9 +1914,15 @@
 
     document.getElementById('btnExportCsv').onclick = exportRosterCsv;
 
-    document.getElementById('formKelas').onchange = populateFormStudents;
-    document.getElementById('formStudent').onchange = onFormStudentChange;
-    document.getElementById('formDeliveryMode').onchange = onDeliveryModeChange;
+    document.getElementById('formKelas').onchange = () => { populateFormStudents(); saveFormDraft(); };
+    document.getElementById('formStudent').onchange = () => { onFormStudentChange(); saveFormDraft(); };
+    document.getElementById('formDeliveryMode').onchange = () => { onDeliveryModeChange(); saveFormDraft(); };
+
+    const formEl = document.getElementById('projectSubmitForm');
+    if (formEl) {
+      formEl.addEventListener('input', saveFormDraft);
+      formEl.addEventListener('change', saveFormDraft);
+    }
 
     const myClassEl = document.getElementById('selectMyClass');
     if (myClassEl) myClassEl.onchange = () => renderMyStatus();
@@ -1819,7 +1935,7 @@
       if (AppState.activeView === 'workbench') renderWorkbench();
       else if (AppState.activeView === 'roster') renderRoster();
       else if (AppState.activeView === 'mystatus') renderMyStatus();
-      else if (AppState.activeView === 'submit') populateFormStudents();
+      else if (AppState.activeView === 'submit') { populateFormStudents(); restoreFormDraft(); }
     }
 
     function escapeHtml(str) {
@@ -1827,6 +1943,7 @@
     }
 
     // Init App
+    setView(AppState.activeView);
     syncState();
   </script>
 </body>
