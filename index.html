@@ -13,22 +13,22 @@
 <body>
   <header class="topbar">
     <div class="container topbar-inner">
-      <div class="brand-group">
-        <a href="#workbench" class="brand-title">Tugas Akhir TKJ</a>
-        <span class="brand-sub">SMKS Kartika X-1</span>
-      </div>
-      <div class="topbar-controls">
-        <nav class="tray" role="tablist" aria-label="Navigasi Utama">
-          <button type="button" class="tray-btn is-active" id="tabNavWorkbench" data-view="workbench" role="tab" aria-selected="true">Meja Uji & Etalase</button>
-          <button type="button" class="tray-btn" id="tabNavRoster" data-view="roster" role="tab" aria-selected="false">Rekap & Nilai Kelas</button>
-          <button type="button" class="tray-btn" id="tabNavMyStatus" data-view="mystatus" role="tab" aria-selected="false">Cek Status Siswa</button>
-          <button type="button" class="tray-btn" id="tabNavSubmit" data-view="submit" role="tab" aria-selected="false">Form Kumpul Karya</button>
-          <button type="button" class="tray-btn" id="tabNavFaq" data-view="faq" role="tab" aria-selected="false">Aturan & FAQ</button>
-        </nav>
+      <div class="topbar-main-row">
+        <div class="brand-group">
+          <a href="#workbench" class="brand-title">Tugas Akhir TKJ</a>
+          <span class="brand-sub">SMKS Kartika X-1</span>
+        </div>
         <div id="authArea">
           <button type="button" class="btn btn-sm" id="btnLoginModal">Login Guru</button>
         </div>
       </div>
+      <nav class="tray nav-tray" role="tablist" aria-label="Navigasi Utama">
+        <button type="button" class="tray-btn is-active" id="tabNavWorkbench" data-view="workbench" role="tab" aria-selected="true">Meja Uji & Etalase</button>
+        <button type="button" class="tray-btn" id="tabNavRoster" data-view="roster" role="tab" aria-selected="false">Rekap & Nilai Kelas</button>
+        <button type="button" class="tray-btn" id="tabNavMyStatus" data-view="mystatus" role="tab" aria-selected="false">Cek Status Siswa</button>
+        <button type="button" class="tray-btn" id="tabNavSubmit" data-view="submit" role="tab" aria-selected="false">Form Kumpul Karya</button>
+        <button type="button" class="tray-btn" id="tabNavFaq" data-view="faq" role="tab" aria-selected="false">Aturan & FAQ</button>
+      </nav>
     </div>
   </header>
 
@@ -96,7 +96,12 @@
         </div>
       </div>
 
-      <div class="workbench-grid" style="margin-top: var(--space-md);">
+      <div class="mobile-workbench-tabs" id="mobileWorkbenchNav">
+        <button type="button" class="tray-btn is-active" id="btnMobileShowList">Daftar Karya</button>
+        <button type="button" class="tray-btn" id="btnMobileShowInspector">Panel Uji &amp; Detail</button>
+      </div>
+
+      <div class="workbench-grid show-list-only" id="workbenchMainGrid" style="margin-top: var(--space-md);">
         <!-- Kolom Kiri: Daftar Projek -->
         <div class="list-pane">
           <div class="pane-header">
@@ -111,7 +116,10 @@
         <!-- Kolom Kanan: Meja Uji / Inspector Panel -->
         <div class="inspector-pane" id="inspectorPane">
           <div class="pane-header">
-            <span class="pane-title" id="inspectorHeaderTitle">Panel Pengujian Aplikasi</span>
+            <div style="display:flex; align-items:center; gap:var(--space-xs); min-width:0;">
+              <button type="button" class="btn btn-sm btn-back-to-list" id="btnBackToList">&larr; Daftar</button>
+              <span class="pane-title" id="inspectorHeaderTitle">Panel Pengujian Aplikasi</span>
+            </div>
             <div class="tag-row" id="inspectorHeaderTags"></div>
           </div>
           <div class="inspector-body" id="inspectorContent">
@@ -1030,6 +1038,8 @@
       });
 
       document.getElementById('projectCountLabel').textContent = `${filtered.length} karya`;
+      const mobBtn = document.getElementById('btnMobileShowList');
+      if (mobBtn) mobBtn.textContent = `Daftar Karya (${filtered.length})`;
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -1075,6 +1085,9 @@
       container.querySelectorAll('[data-project-id]').forEach(btn => {
         btn.onclick = () => {
           AppState.selectedProjectId = Number(btn.dataset.projectId);
+          if (window.innerWidth <= 960) {
+            setMobileWorkbenchTab('inspector');
+          }
           renderWorkbench();
         };
       });
@@ -1082,6 +1095,30 @@
       const activeProject = AppState.projects.find(p => p.id === AppState.selectedProjectId);
       renderInspector(activeProject);
     }
+
+    // Mobile Workbench Tab Switcher
+    function setMobileWorkbenchTab(tab) {
+      const grid = document.getElementById('workbenchMainGrid');
+      const btnList = document.getElementById('btnMobileShowList');
+      const btnInsp = document.getElementById('btnMobileShowInspector');
+      if (!grid || !btnList || !btnInsp) return;
+      if (tab === 'inspector') {
+        grid.className = 'workbench-grid show-inspector-only';
+        btnInsp.classList.add('is-active');
+        btnList.classList.remove('is-active');
+      } else {
+        grid.className = 'workbench-grid show-list-only';
+        btnList.classList.add('is-active');
+        btnInsp.classList.remove('is-active');
+      }
+    }
+
+    const mobTabList = document.getElementById('btnMobileShowList');
+    if (mobTabList) mobTabList.onclick = () => setMobileWorkbenchTab('list');
+    const mobTabInsp = document.getElementById('btnMobileShowInspector');
+    if (mobTabInsp) mobTabInsp.onclick = () => setMobileWorkbenchTab('inspector');
+    const btnBackToList = document.getElementById('btnBackToList');
+    if (btnBackToList) btnBackToList.onclick = () => setMobileWorkbenchTab('list');
 
     // Render Inspector (Split-Screen Right Pane)
     function renderInspector(project) {
@@ -1332,20 +1369,23 @@
 
         return `
           <tr>
-            <td class="mono-cell" data-label="No Absen">${s.no_absen}</td>
-            <td data-label="Nama Siswa">
-              <strong>${escapeHtml(s.name)}</strong>
-              ${s.has_pin ? `<span style="font-size:10px; color:var(--color-muted); display:block;">[PIN Terkunci]</span>` : ''}
+            <td class="mono-cell col-absen" data-label="No Absen">${s.no_absen}</td>
+            <td class="col-name" data-label="Nama Siswa">
+              <div>
+                <span class="pane-meta" style="font-weight:600; margin-right:4px;">${s.no_absen}.</span>
+                <strong>${escapeHtml(s.name)}</strong>
+                ${s.has_pin ? `<span style="font-size:10px; color:var(--color-muted); display:block;">[PIN Terkunci]</span>` : ''}
+              </div>
             </td>
-            <td data-label="Status">${statusBadge}</td>
-            <td data-label="Judul">${projectTitle}</td>
-            <td data-label="Mode">${deliveryMode}</td>
-            <td class="num mono-cell" data-label="Fungsi">${sFunc}</td>
-            <td class="num mono-cell" data-label="UI/UX">${sUi}</td>
-            <td class="num mono-cell" data-label="Teknis">${sTech}</td>
-            <td class="num mono-cell" data-label="Total">${sTotal}</td>
-            <td style="text-align: right;" data-label="Aksi">
-              <div class="roster-actions" style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <td class="col-status" data-label="Status">${statusBadge}</td>
+            <td class="col-title" data-label="Judul">${projectTitle}</td>
+            <td class="col-mode" data-label="Mode">${deliveryMode}</td>
+            <td class="num mono-cell col-subscore" data-label="Fungsi">${sFunc}</td>
+            <td class="num mono-cell col-subscore" data-label="UI/UX">${sUi}</td>
+            <td class="num mono-cell col-subscore" data-label="Teknis">${sTech}</td>
+            <td class="num mono-cell col-total" data-label="Total">${sTotal}</td>
+            <td class="col-actions" style="text-align: right;" data-label="Aksi">
+              <div class="roster-actions">
                 ${p ? `<button type="button" class="btn btn-sm btn-inspect-row" data-goto-proj="${p.id}">Uji Karya</button>` : `<button type="button" class="btn btn-sm btn-submit-for" data-class="${s.kelas}" data-student-id="${s.id}">Kumpul</button>`}
                 ${resetPinBtn}
               </div>
