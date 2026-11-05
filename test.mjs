@@ -219,6 +219,13 @@ assert.equal(resetRes.status, 200);
 const resetStudent = resetRes.students.find(s => s.id === sid1);
 assert.equal(resetStudent.has_pin, false, 'PIN cleared successfully');
 
+console.log('--- 11. Testing Bulk PIN Generation for Class ---');
+const bulkRes = await call('bulkGeneratePins', { kelas: 'XII TKJ 1' });
+assert.equal(bulkRes.status, 200);
+assert.equal(bulkRes.pins.length, 27);
+assert.ok(/^\d{4}$/.test(bulkRes.pins[0].pin));
+assert.equal(bulkRes.students.filter(s => s.kelas === 'XII TKJ 1' && s.has_pin).length, 27);
+
 console.log('--- ALL BACKEND & WORKFLOW TESTS PASSED ---');
 server.close();
 process.exit(0);

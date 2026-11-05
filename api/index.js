@@ -318,6 +318,20 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, ...(await buildState(session)) });
     }
 
+    if (action === 'bulkGeneratePins') {
+      if (!isAdmin) fail(403, 'Hanya guru penguji yang dapat membuat PIN massal.');
+      const k = cleanText(raw.kelas, 30);
+      if (!CLASSES.includes(k)) fail(400, 'Kelas tidak valid.');
+      const students = await q('select id, no_absen, name from ta_tkj.students where kelas = $1 order by no_absen asc', [k]);
+      const results = [];
+      for (const s of students) {
+        const pin = String(crypto.randomInt(1000, 10000));
+        await q('update ta_tkj.students set pin_hash = $1 where id = $2', [hashSecret(pin), s.id]);
+        results.push({ id: s.id, no_absen: s.no_absen, name: s.name, pin });
+      }
+      return res.status(200).json({ ok: true, pins: results, ...(await buildState(session)) });
+    }
+
     if (action === 'deleteProject') {
       if (!isAdmin) fail(403, 'Hanya guru penguji yang dapat menghapus pengumpulan.');
       const pid = int(raw.project_id, 'ID Projek', 1);
