@@ -867,6 +867,8 @@
       throw new Error('Aksi tidak dikenal: ' + action);
     }
 
+    let remoteApiUrl = localStorage.getItem('ta_tkj_remote_api') || 'https://tugas-akhir-tkj.vercel.app';
+
     function updateConnStatus(isServerless) {
       const tag = document.getElementById('connStatusTag');
       if (!tag) return;
@@ -882,14 +884,15 @@
     }
 
     async function api(action, payload = {}) {
-      if (isStaticMode) {
+      if (isStaticMode && !remoteApiUrl) {
         updateConnStatus(false);
         return localApi(action, payload);
       }
       try {
         const headers = { 'content-type': 'application/json' };
         if (AppState.token) headers['authorization'] = 'Bearer ' + AppState.token;
-        const res = await fetch('/api', {
+        const base = window.location.hostname.endsWith('github.io') ? remoteApiUrl.replace(/\/+$/, '') : '';
+        const res = await fetch(base + '/api', {
           method: 'POST',
           headers,
           body: JSON.stringify({ action, ...payload })
@@ -905,6 +908,7 @@
         if (!res.ok) {
           throw new Error(data.error || 'Terjadi kesalahan pada server');
         }
+        isStaticMode = false;
         updateConnStatus(true);
         return data;
       } catch (err) {
