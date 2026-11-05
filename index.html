@@ -320,88 +320,143 @@
     <!-- VIEW 5: ATURAN PENGUMPULAN & FAQ -->
     <section id="viewFaq" class="view-panel" hidden>
       <div class="rules-container">
-        <!-- Blok 1: Aturan Mutlak -->
-        <article class="rule-block">
-          <div class="rule-block-header">5 Aturan Wajib Tugas Akhir TKJ (TA 2026/2027)</div>
-          <div class="rule-block-body">
-            <div class="rule-item">
-              <span class="rule-num">01</span>
-              <div class="rule-text">
-                <strong>Wajib Sudah Jadi & Siap Pakai:</strong> Karya bukan konsep mentah, makalah teoretis, slide presentasi, atau mockup statis. Aplikasi atau sistem wajib sudah dapat dijalankan dan diuji fungsinya oleh guru penguji.
-              </div>
+        <!-- 2 Kolom Ringkas: Aturan Kelulusan & Format Rilis -->
+        <div class="rules-grid-2">
+          <div class="rule-card">
+            <div class="rule-card-title">
+              <span>Aturan Wajib Kelulusan</span>
+              <span class="tag">Mutlak</span>
             </div>
-            <div class="rule-item">
-              <span class="rule-num">02</span>
-              <div class="rule-text">
-                <strong>Pilih 1 dari 2 Bentuk Distribusi:</strong>
-                <p style="margin-top: var(--space-3xs);"><em>Live Webview:</em> Website yang sudah di-deploy aktif (Vercel, Netlify, GitHub Pages, VPS) dan bisa diuji langsung di dalam web browser tanpa error.</p>
-                <p style="margin-top: var(--space-3xs);"><em>File Install:</em> File rilis siap pasang (APK Android, EXE Windows, bot aktif, atau skrip otomasi .rsc) lengkap dengan panduan cara instalasi dan syarat perangkat.</p>
-              </div>
-            </div>
-            <div class="rule-item">
-              <span class="rule-num">03</span>
-              <div class="rule-text">
-                <strong>Wajib Cantumkan Akun Demo:</strong> Jika aplikasi Anda memiliki sistem login, wajib menyertakan username dan password uji coba di kolom form. Jika tidak memerlukan login, tulis <em>“Tanpa login - langsung pakai”</em>.
-              </div>
-            </div>
-            <div class="rule-item">
-              <span class="rule-num">04</span>
-              <div class="rule-text">
-                <strong>Tolak Keras Link Lokal:</strong> Sistem otomatis memblokir URL yang mengarah ke <code>localhost</code>, <code>127.0.0.1</code>, atau <code>192.168.x.x</code>. Link harus dapat diakses dari luar jaringan rumah/laptop Anda.
-              </div>
-            </div>
-            <div class="rule-item">
-              <span class="rule-num">05</span>
-              <div class="rule-text">
-                <strong>Tugas Personal / Mandiri:</strong> Setiap siswa bertanggung jawab atas 1 projek miliknya sendiri. Tidak ada pengerjaan kelompok atau titip nama.
-              </div>
-            </div>
+            <ul class="rule-bullet-list">
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">01</span>
+                <div><strong>Karya 100% Jadi:</strong> Bukan mockup Figma, makalah, atau slide. Aplikasi wajib bisa dijalankan.</div>
+              </li>
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">02</span>
+                <div><strong>Tugas Mandiri:</strong> 1 siswa wajib 1 projek personal. Tidak ada sistem kelompok atau titip nama.</div>
+              </li>
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">03</span>
+                <div><strong>Akun Demo:</strong> Cantumkan username/password uji coba jika aplikasi memakai autentikasi.</div>
+              </li>
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">04</span>
+                <div><strong>Anti-Localhost:</strong> URL lokal (localhost/192.168.x.x) ditolak otomatis oleh sistem.</div>
+              </li>
+            </ul>
           </div>
-        </article>
 
-        <!-- Blok 2: Panduan PIN & Akun -->
-        <article class="rule-block">
-          <div class="rule-block-header">Panduan PIN Siswa & Keamanan Pengumpulan</div>
-          <div class="rule-block-body">
-            <div class="rule-item">
-              <span class="rule-num">A</span>
-              <div class="rule-text">
-                <strong>Di mana PIN dibuat?</strong> Siswa membuat sendiri PIN 4 digit saat pertama kali mengisi Form Kumpul Karya, atau menggunakan tombol <em>“Buat PIN Acak”</em>. Guru juga dapat mencetak daftar PIN massal untuk seluruh kelas.
-              </div>
+          <div class="rule-card">
+            <div class="rule-card-title">
+              <span>Pilihan Saluran Rilis</span>
+              <span class="tag">Pilih 1 Jalur</span>
             </div>
-            <div class="rule-item">
-              <span class="rule-num">B</span>
-              <div class="rule-text">
-                <strong>Untuk apa PIN ini?</strong> PIN digunakan sebagai kunci pengaman agar tautan karya Anda tidak bisa diubah atau diganti oleh orang lain saat Anda ingin memperbarui link atau mengunggah revisi.
-              </div>
-            </div>
-            <div class="rule-item">
-              <span class="rule-num">C</span>
-              <div class="rule-text">
-                <strong>Bagaimana jika lupa PIN?</strong> Hubungi guru penguji (Pak Allan Parindera). Guru memiliki tombol <em>“Reset PIN”</em> pada rekap kelas untuk menghapus PIN lama sehingga Anda bisa memasukkan PIN baru.
-              </div>
-            </div>
+            <ul class="rule-bullet-list">
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">A</span>
+                <div>
+                  <strong>Live Webview (Website Online):</strong>
+                  <p style="margin-top: 2px;">Deploy ke Vercel, Netlify, GitHub Pages, atau VPS. Wajib protokol <code>https://</code> publik aktif dan langsung dites di panel penguji.</p>
+                </div>
+              </li>
+              <li class="rule-bullet-item">
+                <span class="rule-bullet-num">B</span>
+                <div>
+                  <strong>File Install (Installer / Bot):</strong>
+                  <p style="margin-top: 2px;">File APK Android, EXE Windows, Bot aktif, atau skrip RouterOS. Wajib sertakan spesifikasi perangkat dan panduan instalasi singkat.</p>
+                </div>
+              </li>
+            </ul>
           </div>
-        </article>
+        </div>
 
-        <!-- Blok 3: Tanya Jawab (FAQ) -->
-        <article class="rule-block">
-          <div class="rule-block-header">Tanya Jawab Teknis (FAQ)</div>
-          <div class="rule-block-body">
-            <div>
-              <h3 class="faq-q">Bagaimana jika status karya saya dinyatakan “REVISI WAJIB”?</h3>
-              <p class="faq-a">Jangan panik. Masuk ke menu <strong>Cek Status Siswa</strong> atau <strong>Meja Uji</strong>, baca catatan evaluasi yang ditulis guru penguji, perbaiki bug pada aplikasi Anda, lalu kirim ulang perbaikan via Form Kumpul menggunakan PIN yang sama. Status otomatis berubah kembali ke <strong>MENUNGGU UJI</strong>.</p>
+        <!-- Panduan PIN Siswa (Alur Ringkas) -->
+        <div class="rule-card">
+          <div class="rule-card-title">
+            <span>Panduan PIN 4 Digit Siswa</span>
+            <span class="tag">Keamanan Akun</span>
+          </div>
+          <div class="rules-grid-2" style="gap: var(--space-md); margin-top: var(--space-2xs);">
+            <div style="font-size: var(--text-sm); line-height: 1.55; color: var(--color-ink-2);">
+              <strong>Di mana PIN dibuat?</strong>
+              <p style="margin-top: var(--space-3xs);">Siswa mengisi 4 angka PIN saat pertama kali mengisi Form Kumpul Karya, atau klik tombol <em>“Buat PIN Acak”</em>. Guru juga dapat mencetak daftar PIN massal untuk seluruh kelas.</p>
             </div>
-            <div style="border-top: var(--rule-hair) solid var(--color-rule); padding-top: var(--space-md);">
-              <h3 class="faq-q">Apakah boleh menggunakan file APK di Google Drive?</h3>
-              <p class="faq-a">Boleh, dengan syarat izin berbagi file Google Drive wajib disetel <strong>“Siapa saja yang memiliki link dapat melihat/mengunduh”</strong> (Public Access). Jika link terkunci, penguji tidak bisa menilai dan status Anda akan menjadi REVISI WAJIB.</p>
-            </div>
-            <div style="border-top: var(--rule-hair) solid var(--color-rule); padding-top: var(--space-md);">
-              <h3 class="faq-q">Apakah projek boleh dibuat menggunakan AI / Framework / No-Code?</h3>
-              <p class="faq-a">Boleh menggunakan alat bantu apa pun, selama Anda memahami cara kerjanya, kode sumber dapat dipertanggungjawabkan, dan aplikasi terbukti berjalan lancar saat diuji pakai.</p>
+            <div style="font-size: var(--text-sm); line-height: 1.55; color: var(--color-ink-2);">
+              <strong>Fungsi Kunci &amp; Reset:</strong>
+              <p style="margin-top: var(--space-3xs);">PIN berfungsi mengunci karya agar tidak diubah siswa lain saat Anda ingin memperbarui link. Jika Anda lupa PIN, minta guru penguji klik <em>“Reset PIN”</em> pada rekap nilai.</p>
             </div>
           </div>
-        </article>
+        </div>
+
+        <!-- Accordion FAQ Interaktif -->
+        <div>
+          <h2 style="font-size: var(--text-lg); margin-bottom: var(--space-sm);">Pertanyaan Sering Diajukan (FAQ)</h2>
+          <div class="faq-accordion-group">
+            <details class="faq-card" open>
+              <summary class="faq-summary">
+                <span>Bagaimana jika status karya saya dinyatakan “REVISI WAJIB”?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Buka menu <strong>Cek Status Siswa</strong> atau <strong>Meja Uji</strong> untuk membaca catatan evaluasi dari guru penguji. Perbaiki bug atau link yang bermasalah pada aplikasi Anda, lalu kirim ulang perbaikan via Form Kumpul menggunakan PIN yang sama. Status otomatis berubah kembali menjadi <strong>MENUNGGU UJI</strong>.</p>
+              </div>
+            </details>
+
+            <details class="faq-card">
+              <summary class="faq-summary">
+                <span>Bagaimana cara membagikan file APK / EXE lewat Google Drive agar tidak ditolak?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Klik kanan file di Google Drive &rarr; pilih <strong>Bagikan (Share)</strong> &rarr; pada Akses Umum ubah dari <em>Dibatasi (Restricted)</em> menjadi <strong>“Siapa saja yang memiliki link dapat melihat/mengunduh”</strong>. Jika akses terkunci, penguji tidak bisa mengunduh file dan status Anda otomatis menjadi REVISI WAJIB.</p>
+              </div>
+            </details>
+
+            <details class="faq-card">
+              <summary class="faq-summary">
+                <span>Bagaimana pembagian bobot penilaian tugas akhir ini?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Penilaian menggunakan skala 0 sampai 100 dengan 3 kriteria utama:</p>
+                <p>1. <strong>Fungsionalitas &amp; Kesiapan Pakai (40%):</strong> Fitur utama berjalan lancar, tidak ada error fatal saat dijalankan.</p>
+                <p>2. <strong>UI/UX &amp; Kerapian Tampilan (30%):</strong> Tata letak rapi, responsif saat dibuka di layar HP dan desktop, jelas alur pakainya.</p>
+                <p>3. <strong>Kemanfaatan &amp; Kompleksitas Teknis (30%):</strong> Menyelesaikan masalah nyata dan memiliki kedalaman teknis kejuruan TKJ.</p>
+              </div>
+            </details>
+
+            <details class="faq-card">
+              <summary class="faq-summary">
+                <span>Apakah boleh menggunakan bantuan AI, framework, atau template?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Boleh menggunakan alat bantu dan framework apa pun, asalkan Anda memahami alur kode yang dibuat, mampu mempertanggungjawabkan fungsinya saat ditanya penguji, dan aplikasi terbukti berjalan mulus saat diuji pakai.</p>
+              </div>
+            </details>
+
+            <details class="faq-card">
+              <summary class="faq-summary">
+                <span>Mengapa link localhost atau IP 192.168.x.x otomatis ditolak sistem?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Alamat <code>localhost</code> dan <code>192.168.x.x</code> hanya berjalan di komputer pribadi Anda dan tidak bisa dibuka dari internet atau HP penguji. Anda wajib meng-online-kan aplikasi ke platform hosting publik gratis (seperti Vercel, Netlify, atau GitHub Pages) sebelum mengumpulkan.</p>
+              </div>
+            </details>
+
+            <details class="faq-card">
+              <summary class="faq-summary">
+                <span>Kapan batas akhir pengumpulan tugas akhir ini?</span>
+                <span class="faq-toggle-icon">+</span>
+              </summary>
+              <div class="faq-content">
+                <p>Batas akhir pengumpulan dan pengujian karya adalah <strong>18 Desember 2026</strong>. Siswa disarankan mengumpulkan lebih awal agar memiliki waktu untuk memperbaiki karya jika mendapat catatan revisi dari guru.</p>
+              </div>
+            </details>
+          </div>
+        </div>
       </div>
     </section>
   </main>
